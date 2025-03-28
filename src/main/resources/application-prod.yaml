@@ -49,7 +49,7 @@ open:
     title: API Documentation
     version: v1.1.0
     description: API-Service
-    serverUrl: ${SPRING_SERVER_URL}
+    serverUrl: https://${RAILWAY_PUBLIC_DOMAIN}
     serverName: Server Test
 
 jwt:
@@ -61,4 +61,4 @@ outbound:
   identity:
     client-id: ${CLIENT_ID}
     client-secret: ${CLIENT_SECRET}
-    redirect-uri: ${SECURITY_REDIRECT_URI}
+    redirect-uri: https://${RAILWAY_PUBLIC_DOMAIN}${SECURITY_REDIRECT_URI}
