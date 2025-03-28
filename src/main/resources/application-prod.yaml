@@ -4,6 +4,7 @@ server:
       max: 200
   servlet:
     context-path: /api/v1
+  port: ${PORT:8080}
 
 spring:
   datasource:
