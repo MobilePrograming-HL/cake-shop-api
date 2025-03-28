@@ -44,6 +44,12 @@ spring:
       mail.smtp.starttls.enable: true
   config:
     import: optional:file:.env[.properties]
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      url: ${REDIS_URL}
 
 open:
   api:
