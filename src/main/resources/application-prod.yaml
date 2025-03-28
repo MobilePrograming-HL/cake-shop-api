@@ -44,22 +44,34 @@ spring:
       mail.smtp.starttls.enable: true
   config:
     import: optional:file:.env[.properties]
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      url: ${REDIS_URL}
 
 open:
   api:
     title: API Documentation
     version: v1.1.0
     description: API-Service
-    serverUrl: https://${RAILWAY_PUBLIC_DOMAIN}
+    serverUrl: https://${RAILWAY_PUBLIC_DOMAIN}/api/v1
     serverName: Server Test
 
 jwt:
   signerKey: ${SECURITY_SIGNER_KEY}
-  valid-duration: 600
-  refreshable-duration: 3600
+  valid-duration: 3600
+  refreshable-duration: 86400
 
 outbound:
   identity:
     client-id: ${CLIENT_ID}
     client-secret: ${CLIENT_SECRET}
     redirect-uri: https://${RAILWAY_PUBLIC_DOMAIN}${SECURITY_REDIRECT_URI}
+
+logging:
+  level:
+    org:
+      springframework:
+        security=DEBUG:
