@@ -56,7 +56,7 @@ open:
     title: API Documentation
     version: v1.1.0
     description: API-Service
-    serverUrl: https://${RAILWAY_PUBLIC_DOMAIN}
+    serverUrl: https://${RAILWAY_PUBLIC_DOMAIN}/api/v1
     serverName: Server Test
 
 jwt:
