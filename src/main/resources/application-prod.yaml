@@ -46,9 +46,9 @@ spring:
     import: optional:file:.env[.properties]
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
+      host: ${REDISHOST}
+      port: ${REDISPORT:6379}
+      password: ${REDISPASSWORD}
       url: ${REDIS_URL}
 
 open:

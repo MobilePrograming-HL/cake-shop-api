@@ -47,6 +47,12 @@ spring:
         debug: true
   config:
     import: optional:file:.env[.properties]
+  data:
+    redis:
+      host: ${REDISHOST}
+      port: ${REDISPORT:6379}
+      password: ${REDISPASSWORD}
+      url: ${REDIS_URL}
 
 open:
   api:
