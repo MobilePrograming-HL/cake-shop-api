@@ -15,7 +15,11 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -35,9 +39,11 @@ public class CustomJwtDecoder implements JwtDecoder {
 
         var response = authenticationService.introspect(
                 IntrospectRequest.builder().token(token).build());
-        log.error(ErrorCode.UNAUTHENTICATED.getMessage());
 
-        if (!response.isValid()) throw new AppException(ErrorCode.UNAUTHENTICATED);
+        if (!response.isValid()) {
+            log.error(ErrorCode.UNAUTHENTICATED.getMessage());
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
 
         if (Objects.isNull(nimbusJwtDecoder)) {
             SecretKeySpec secretKeySpec = new SecretKeySpec(SIGNER_KEY.getBytes(), "HS512");
@@ -46,6 +52,8 @@ public class CustomJwtDecoder implements JwtDecoder {
                     .build();
         }
 
-        return nimbusJwtDecoder.decode(token);
+        Jwt jwt = nimbusJwtDecoder.decode(token);
+        log.info("Decoded scope: {}", jwt.getClaimAsString("scope")); // Debug scope
+        return jwt;
     }
 }
