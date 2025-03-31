@@ -61,8 +61,8 @@ open:
 
 jwt:
   signerKey: ${SECURITY_SIGNER_KEY}
-  valid-duration: 3600
-  refreshable-duration: 86400
+  valid-duration: 7    # 7 ngày cho access token
+  refreshable-duration: 30  # 30 ngày cho access token
 
 outbound:
   identity:
