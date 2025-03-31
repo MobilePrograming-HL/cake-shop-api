@@ -27,6 +27,8 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
+        order_inserts: true
+        order_updates: true
   liquibase:
     change-log: classpath:liquibase/db.changelog-master.xml
     enabled: true
