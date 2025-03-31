@@ -22,11 +22,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         dialect: org.hibernate.dialect.MySQLDialect
+        order_inserts: true
+        order_updates: true
+        use_sql_comments: false
   liquibase:
     change-log: classpath:liquibase/db.changelog-master.xml
     enabled: true
@@ -74,4 +77,4 @@ logging:
   level:
     org:
       springframework:
-        security=DEBUG:
+        security: WARN
