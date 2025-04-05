@@ -53,6 +53,8 @@ spring:
       port: ${REDISPORT:6379}
       password: ${REDISPASSWORD}
       url: ${REDIS_URL}
+      repositories:
+        enabled: false
 
 open:
   api:
