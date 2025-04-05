@@ -1,5 +1,6 @@
 package com.cakeshop.api_main.dto.response.product;
 
+import com.cakeshop.api_main.dto.response.discount.DiscountResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import lombok.AccessLevel;
@@ -23,6 +24,9 @@ public class ProductResponse {
 
     @Schema(description = "quantity")
     Long quantity;
+
+    @Schema(description = "discount")
+    DiscountResponse discount;
 
     @Schema(description = "status")
     Integer status;

@@ -39,20 +39,53 @@ INSERT INTO `tbl_permission_group` (`group_id`, `permission_id`) VALUES
 
 -- Dumping data for table db_cake_shop.tbl_category: ~1 rows (approximately)
 INSERT INTO `tbl_category` (`id`, `code`, `name`, `description`, `image`, `created_at`, `updated_at`) VALUES
-    ('7751d611-3b80-4cce-b8f6-1b3130d8c992', 'WEDDING_CAKE', 'Bánh Cưới', 'Những chiếc bánh sinh nhật ngọt ngào với nhiều hương vị hấp dẫn.', 'https://th.bing.com/th/id/OIP.J96rcY0GJUH7bg6UpMcmNQHaHH?w=200&h=193&c=7&r=0&o=5&dpr=1.1&pid=1.7', '2025-03-29 10:54:11', '2025-03-29 10:54:11');
+    ('7751d611-3b80-4cce-b8f6-1b3130d8c992', 'WEDDING_CAKE', 'Bánh Cưới', 'Những chiếc bánh sinh nhật ngọt ngào với nhiều hương vị hấp dẫn.', 'https://th.bing.com/th/id/OIP.J96rcY0GJUH7bg6UpMcmNQHaHH?w=200&h=193&c=7&r=0&o=5&dpr=1.1&pid=1.7', '2025-03-29 10:54:11', '2025-03-29 10:54:11'),
+    ('bbee11f7-4420-4bbe-9150-c8790027e580', 'BIRTH_CAKE', 'Bánh Sinh Nhật', 'Những chiếc bánh sinh nhật xinh đẹp.', '', '2025-04-04 12:15:28', '2025-04-04 12:15:28'),
+    ('d187988e-5d2e-47e2-8ca2-be23e6de000f', 'CHEESE_CAKE', 'Bánh phô mai', 'Bánh cheesecake đặc biệt.', '', '2025-04-04 12:15:28', '2025-04-04 12:15:28'),
+    ('e121da67-bd67-4d7c-ab82-4b84e785651e', 'CUPCAKE', 'Cupcake', 'Các loại bánh cupcake ngon và đa dạng.', '', '2025-04-04 12:15:28', '2025-04-04 12:15:28');;
 
--- Dumping data for table db_cake_shop.tbl_product: ~1 rows (approximately)
-INSERT INTO `tbl_product` (`id`, `name`, `description`, `price`, `quantity`, `status`, `created_at`, `updated_at`, `category_id`) VALUES
-    ('c850eb1f-4b4e-4ca8-9c22-0b65240c0428', 'Bánh Cưới', 'Những chiếc bánh sinh nhật ngọt ngào với nhiều hương vị hấp dẫn.', 100000, 100, 1, '2025-03-29 19:10:23.259000', '2025-03-29 19:10:23.259000', '7751d611-3b80-4cce-b8f6-1b3130d8c992');
+-- Dumping data for table db_cake_shop.tbl_product: ~6 rows (approximately)
+INSERT INTO `tbl_product` (`id`, `name`, `description`, `price`, `quantity`, `status`, `created_at`, `updated_at`, `category_id`, `discount_id`) VALUES
+     ('36286e7e-5231-419b-82c0-43f474d1dedb', 'Bánh trà xanh matcha', 'Bánh kem vị trà xanh matcha, thơm mát và bổ dưỡng.', 180000, 12, 1, '2025-04-04 12:43:36.386000', '2025-04-04 12:43:36.386000', 'bbee11f7-4420-4bbe-9150-c8790027e580', NULL),
+     ('abd51573-9c84-4175-9059-a197ddfb2899', 'Cheesecake việt quất', 'Bánh cheesecake việt quất thơm béo, ngọt ngào.', 150000, 15, 1, '2025-04-04 12:43:36.384000', '2025-04-04 12:43:36.384000', 'd187988e-5d2e-47e2-8ca2-be23e6de000f', NULL),
+     ('c850eb1f-4b4e-4ca8-9c22-0b65240c0428', 'Bánh Cưới', 'Những chiếc bánh sinh nhật ngọt ngào với nhiều hương vị hấp dẫn.', 100000, 100, 1, '2025-03-29 19:10:23.259000', '2025-03-29 19:10:23.259000', '7751d611-3b80-4cce-b8f6-1b3130d8c992', NULL),
+     ('d009db00-2e43-4b73-886e-cf0ced297fe6', 'Cupcake vani truyền thống', 'Cupcake vani truyền thống, mềm mịn và ngọt nhẹ.', 45000, 25, 1, '2025-04-04 12:43:36.388000', '2025-04-04 12:43:36.388000', 'e121da67-bd67-4d7c-ab82-4b84e785651e', NULL),
+     ('e5307e40-6893-43bc-bec2-74c01b4f989b', 'Bánh kem socola', 'Bánh kem socola thơm ngon, phù hợp cho tiệc sinh nhật.', 200000, 10, 1, '2025-04-04 12:43:36.330000', '2025-04-04 12:43:36.330000', 'bbee11f7-4420-4bbe-9150-c8790027e580', NULL),
+     ('e7cb92e8-a81a-4e74-bcb7-27344275006b', 'Cupcake dâu tây', 'Cupcake dâu tây nhỏ gọn, dễ thương, vị ngọt dịu.', 50000, 20, 1, '2025-04-04 12:43:36.382000', '2025-04-04 12:43:36.382000', 'e121da67-bd67-4d7c-ab82-4b84e785651e', NULL);
 
 -- Dumping data for table db_cake_shop.tbl_product_images: ~1 rows (approximately)
 INSERT INTO `tbl_product_images` (`product_id`, `image_url`) VALUES
-    ('c850eb1f-4b4e-4ca8-9c22-0b65240c0428', 'https://th.bing.com/th/id/OIP.J96rcY0GJUH7bg6UpMcmNQHaHH?w=200&h=193&c=7&r=0&o=5&dpr=1.1&pid=1.7');
+     ('c850eb1f-4b4e-4ca8-9c22-0b65240c0428', 'https://th.bing.com/th/id/OIP.J96rcY0GJUH7bg6UpMcmNQHaHH?w=200&h=193&c=7&r=0&o=5&dpr=1.1&pid=1.7'),
+     ('36286e7e-5231-419b-82c0-43f474d1dedb', 'matcha_cake1.jpg'),
+     ('36286e7e-5231-419b-82c0-43f474d1dedb', 'matcha_cake2.jpg'),
+     ('abd51573-9c84-4175-9059-a197ddfb2899', 'blueberry_cheesecake1.jpg'),
+     ('abd51573-9c84-4175-9059-a197ddfb2899', 'blueberry_cheesecake2.jpg'),
+     ('d009db00-2e43-4b73-886e-cf0ced297fe6', 'vanilla_cupcake1.jpg'),
+     ('d009db00-2e43-4b73-886e-cf0ced297fe6', 'vanilla_cupcake2.jpg'),
+     ('e5307e40-6893-43bc-bec2-74c01b4f989b', 'chocolate_cake1.jpg'),
+     ('e5307e40-6893-43bc-bec2-74c01b4f989b', 'chocolate_cake2.jpg'),
+     ('e7cb92e8-a81a-4e74-bcb7-27344275006b', 'strawberry_cupcake1.jpg'),
+     ('e7cb92e8-a81a-4e74-bcb7-27344275006b', 'strawberry_cupcake2.jpg');
 
 -- Dumping data for table db_cake_shop.tbl_tag: ~1 rows (approximately)
 INSERT INTO `tbl_tag` (`id`, `code`, `name`, `created_at`, `updated_at`) VALUES
-    ('8f1f608f-be88-467e-9a7a-12e6285ab72a', 'CHOCOLATE', 'Socola', '2025-03-29 11:07:29.341000', '2025-03-29 11:07:29.341000');
+     ('375fd18f-6ee3-4325-8d1a-757974531f7e', 'COFFEE', 'Coffee', '2025-04-04 12:16:00.657000', '2025-04-04 12:16:00.657000'),
+     ('4464e134-7974-4b7f-8d4d-41fb14eee46a', 'VANILLA', 'Vanilla', '2025-04-04 12:16:00.652000', '2025-04-04 12:16:00.652000'),
+     ('5c79934c-0fc6-4e0c-9928-21d8b1ae56d7', 'CHEESE', 'Cheesecake', '2025-04-04 12:16:00.651000', '2025-04-04 12:16:00.651000'),
+     ('606ef0e9-5dd5-4165-b499-b64577f8f324', 'FRUIT', 'Fruit', '2025-04-04 12:16:00.647000', '2025-04-04 12:16:00.647000'),
+     ('8f1f608f-be88-467e-9a7a-12e6285ab72a', 'CHOCOLATE', 'Socola', '2025-03-29 11:07:29.341000', '2025-03-29 11:07:29.341000'),
+     ('ab115cc9-ccea-4ddd-a4fb-33b813e633b9', 'CUPCAKE', 'Cupcake', '2025-04-04 12:16:00.649000', '2025-04-04 12:16:00.649000'),
+     ('bd093f52-429a-416d-aa34-e62a7fdc0747', 'BLUEBERRY', 'Blueberry', '2025-04-04 12:16:00.655000', '2025-04-04 12:16:00.655000'),
+     ('bd7cdc57-ec6b-4f89-b407-665539ac97a6', 'MATCHA', 'Matcha', '2025-04-04 12:16:00.658000', '2025-04-04 12:16:00.658000'),
+     ('e5c796ad-0893-4dd5-a29b-23d49a3b3647', 'STRAWBERRY', 'Strawberry', '2025-04-04 12:16:00.653000', '2025-04-04 12:16:00.653000'); '2025-03-29 11:07:29.341000');
 
 -- Dumping data for table db_cake_shop.tbl_product_tag: ~1 rows (approximately)
 INSERT INTO `tbl_product_tag` (`product_id`, `tag_id`) VALUES
-    ('c850eb1f-4b4e-4ca8-9c22-0b65240c0428', '8f1f608f-be88-467e-9a7a-12e6285ab72a');
+   ('d009db00-2e43-4b73-886e-cf0ced297fe6', '4464e134-7974-4b7f-8d4d-41fb14eee46a'),
+   ('abd51573-9c84-4175-9059-a197ddfb2899', '5c79934c-0fc6-4e0c-9928-21d8b1ae56d7'),
+   ('c850eb1f-4b4e-4ca8-9c22-0b65240c0428', '8f1f608f-be88-467e-9a7a-12e6285ab72a'),
+   ('d009db00-2e43-4b73-886e-cf0ced297fe6', 'ab115cc9-ccea-4ddd-a4fb-33b813e633b9'),
+   ('e7cb92e8-a81a-4e74-bcb7-27344275006b', 'ab115cc9-ccea-4ddd-a4fb-33b813e633b9'),
+   ('abd51573-9c84-4175-9059-a197ddfb2899', 'bd093f52-429a-416d-aa34-e62a7fdc0747'),
+   ('36286e7e-5231-419b-82c0-43f474d1dedb', 'bd7cdc57-ec6b-4f89-b407-665539ac97a6'),
+   ('e7cb92e8-a81a-4e74-bcb7-27344275006b', 'e5c796ad-0893-4dd5-a29b-23d49a3b3647');
