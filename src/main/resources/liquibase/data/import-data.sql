@@ -77,7 +77,7 @@ INSERT INTO `tbl_tag` (`id`, `code`, `name`, `created_at`, `updated_at`) VALUES
      ('ab115cc9-ccea-4ddd-a4fb-33b813e633b9', 'CUPCAKE', 'Cupcake', '2025-04-04 12:16:00.649000', '2025-04-04 12:16:00.649000'),
      ('bd093f52-429a-416d-aa34-e62a7fdc0747', 'BLUEBERRY', 'Blueberry', '2025-04-04 12:16:00.655000', '2025-04-04 12:16:00.655000'),
      ('bd7cdc57-ec6b-4f89-b407-665539ac97a6', 'MATCHA', 'Matcha', '2025-04-04 12:16:00.658000', '2025-04-04 12:16:00.658000'),
-     ('e5c796ad-0893-4dd5-a29b-23d49a3b3647', 'STRAWBERRY', 'Strawberry', '2025-04-04 12:16:00.653000', '2025-04-04 12:16:00.653000'); '2025-03-29 11:07:29.341000');
+     ('e5c796ad-0893-4dd5-a29b-23d49a3b3647', 'STRAWBERRY', 'Strawberry', '2025-04-04 12:16:00.653000', '2025-04-04 12:16:00.653000');
 
 -- Dumping data for table db_cake_shop.tbl_product_tag: ~1 rows (approximately)
 INSERT INTO `tbl_product_tag` (`product_id`, `tag_id`) VALUES
