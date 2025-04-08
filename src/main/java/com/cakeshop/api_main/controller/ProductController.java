@@ -3,23 +3,21 @@ package com.cakeshop.api_main.controller;
 import com.cakeshop.api_main.constant.BaseConstant;
 import com.cakeshop.api_main.dto.request.product.CreateProductRequest;
 import com.cakeshop.api_main.dto.request.product.UpdateProductRequest;
-import com.cakeshop.api_main.dto.request.tag.CreateTagRequest;
-import com.cakeshop.api_main.dto.request.tag.UpdateTagRequest;
 import com.cakeshop.api_main.dto.response.BaseResponse;
 import com.cakeshop.api_main.dto.response.PaginationResponse;
 import com.cakeshop.api_main.dto.response.product.ProductResponse;
-import com.cakeshop.api_main.dto.response.tag.TagResponse;
+import com.cakeshop.api_main.dto.response.product.ProductReviewResponse;
+import com.cakeshop.api_main.dto.response.product.ProductSoldResponse;
 import com.cakeshop.api_main.exception.BadRequestException;
 import com.cakeshop.api_main.exception.ErrorCode;
 import com.cakeshop.api_main.exception.NotFoundException;
 import com.cakeshop.api_main.mapper.ProductMapper;
-import com.cakeshop.api_main.mapper.TagMapper;
 import com.cakeshop.api_main.model.Category;
 import com.cakeshop.api_main.model.Product;
 import com.cakeshop.api_main.model.Tag;
 import com.cakeshop.api_main.model.criteria.ProductCriteria;
-import com.cakeshop.api_main.model.criteria.TagCriteria;
 import com.cakeshop.api_main.repository.internal.ICategoryRepository;
+import com.cakeshop.api_main.repository.internal.IOrderItemRepository;
 import com.cakeshop.api_main.repository.internal.IProductRepository;
 import com.cakeshop.api_main.repository.internal.ITagRepository;
 import com.cakeshop.api_main.utils.BaseResponseUtils;
@@ -36,6 +34,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -47,6 +47,7 @@ public class ProductController {
     IProductRepository productRepository;
     ICategoryRepository categoryRepository;
     ITagRepository tagRepository;
+    IOrderItemRepository orderItemRepository;
 
     ProductMapper productMapper;
 
@@ -56,13 +57,33 @@ public class ProductController {
             Pageable pageable
     ) {
         Page<Product> pageData = productRepository.findAll(criteria.getSpecification(), pageable);
-
+        List<Product> products = pageData.getContent();
+        List<String> productIds = products.stream()
+                .map(Product::getId)
+                .toList();
+        // Map: Review
+        Map<String, ProductReviewResponse> reviewStatsMap = productRepository
+                .findReviewStatsByProductIds(productIds).stream()
+                .collect(Collectors.toMap(ProductReviewResponse::getProductId, stats -> stats));
+        // Map: product sold
+        Map<String, Long> soldStatsMap = orderItemRepository
+                .findSoldQuantitiesByProductIds(productIds, BaseConstant.ORDER_STATUS_DELIVERED).stream()
+                .collect(Collectors.toMap(ProductSoldResponse::getProductId, ProductSoldResponse::getTotalSold));
+        List<ProductResponse> productResponses = products.stream()
+                .map(product -> {
+                    ProductResponse response = productMapper.fromEntityToProductResponse(product);
+                    ProductReviewResponse stats = reviewStatsMap.get(product.getId());
+                    response.setTotalReviews(stats != null ? stats.getTotalReviews() : 0L);
+                    response.setAverageRating(stats != null ? stats.getAverageRating() : 0.0);
+                    response.setTotalSold(soldStatsMap.getOrDefault(product.getId(), 0L));
+                    return response;
+                })
+                .toList();
         PaginationResponse<ProductResponse> responseDto = new PaginationResponse<>(
-                productMapper.fromEntitiesToProductResponseList(pageData.getContent()),
+                productResponses,
                 pageData.getTotalElements(),
                 pageData.getTotalPages()
         );
-
         return BaseResponseUtils.success(responseDto, "Get product list successfully");
     }
 
