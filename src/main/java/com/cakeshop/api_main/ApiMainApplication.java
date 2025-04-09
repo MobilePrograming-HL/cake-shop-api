@@ -1,8 +1,22 @@
 package com.cakeshop.api_main;
 
+import com.cakeshop.api_main.model.Category;
+import com.cakeshop.api_main.model.Discount;
+import com.cakeshop.api_main.model.Product;
+import com.cakeshop.api_main.model.Tag;
+import com.cakeshop.api_main.repository.internal.ICategoryRepository;
+import com.cakeshop.api_main.repository.internal.IDiscountRepository;
+import com.cakeshop.api_main.repository.internal.IProductRepository;
+import com.cakeshop.api_main.repository.internal.ITagRepository;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Bean;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @SpringBootApplication
 @EnableFeignClients
@@ -13,10 +27,11 @@ public class ApiMainApplication {
     }
 
 //    @Bean
-//    public CommandLineRunner initData(ICategoryRepository categoryRepository, ITagRepository tagRepository, IProductRepository productRepository) {
+//    public CommandLineRunner initData(ICategoryRepository categoryRepository, ITagRepository tagRepository, IProductRepository productRepository, IDiscountRepository discountRepository) {
 //        return args -> {
 //            List<Category> categories = categoryRepository.findAll();
 //            List<Tag> tags = tagRepository.findAll();
+//            List<Discount> discounts = discountRepository.findAll();
 //
 //            if (categories.isEmpty() || tags.isEmpty()) {
 //                throw new RuntimeException("Cần có dữ liệu Category và Tag trước khi tạo Product.");
@@ -24,58 +39,83 @@ public class ApiMainApplication {
 //
 //            List<Product> products = Arrays.asList(
 //                    Product.builder()
-//                            .name("Bánh kem socola")
-//                            .price(200000.0)
-//                            .description("Bánh kem socola thơm ngon, phù hợp cho tiệc sinh nhật.")
+//                            .name("Hương Tình Yêu")
+//                            .price(525000.0)
+//                            .description("Bánh cưới 'Hương Tình Yêu' mang đến sự ngọt ngào và lãng mạn, với lớp kem mềm mịn cùng thiết kế hoa trang nhã, lý tưởng cho ngày trọng đại.")
 //                            .quantity(10L)
 //                            .status(1)
-//                            .images(Arrays.asList("chocolate_cake1.jpg", "chocolate_cake2.jpg"))
-//                            .category(findCategoryByCode(categories, "BIRTH_CAKE"))
-//                            .tags(findTagsByCodes(tags, "CHOCO"))
+//                            .images(Arrays.asList(
+//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744210471/wedding-3_dlteib.webp",
+//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744210338/wedding-1_robivv.webp",
+//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744210509/wedding-2_mljufv.webp"
+//                            ))
+//                            .category(findCategoryByCode(categories, "WEDDING_CAKE"))
+//                            .discount(findDiscountByCode(discounts, "DISCOUNT_10"))
+//                            .tags(findTagsByCodes(tags, "VANILLA", "CHEESE"))
 //                            .build(),
 //
 //                    Product.builder()
-//                            .name("Cupcake dâu tây")
-//                            .price(50000.0)
-//                            .description("Cupcake dâu tây nhỏ gọn, dễ thương, vị ngọt dịu.")
-//                            .quantity(20L)
+//                            .name("Socola Ấm Áp")
+//                            .price(15000.0)
+//                            .description("Cupcake chocolate nhỏ gọn, dễ thương, vị ngọt dịu.")
+//                            .quantity(50L)
 //                            .status(1)
-//                            .images(Arrays.asList("strawberry_cupcake1.jpg", "strawberry_cupcake2.jpg"))
-//                            .category(findCategoryByCode(categories, "CUPCAKE"))
-//                            .tags(findTagsByCodes(tags, "CUPCAKE", "STRAWBERRY"))
+//                            .images(Arrays.asList(
+//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744208115/product-10_q4cevx.webp",
+//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744213474/cupcake-4_whytdy.webp"))
+//                            .category(findCategoryByCode(categories, "CUP_CAKE"))
+//                            .discount(findDiscountByCode(discounts, "DISCOUNT_5"))
+//                            .tags(findTagsByCodes(tags, "CHOCOLATE"))
 //                            .build(),
 //
 //                    Product.builder()
-//                            .name("Cheesecake việt quất")
-//                            .price(150000.0)
-//                            .description("Bánh cheesecake việt quất thơm béo, ngọt ngào.")
-//                            .quantity(15L)
+//                            .name("Kem Mây Bồng Bềnh")
+//                            .price(15000.0)
+//                            .description("Cupcake nhỏ gọn, dễ thương, vị ngọt dịu.")
+//                            .quantity(40L)
 //                            .status(1)
-//                            .images(Arrays.asList("blueberry_cheesecake1.jpg", "blueberry_cheesecake2.jpg"))
-//                            .category(findCategoryByCode(categories, "CHEESE_CAKE"))
-//                            .tags(findTagsByCodes(tags, "CHEESE", "BLUEBERRY"))
-//                            .build(),
-//
-//                    Product.builder()
-//                            .name("Bánh trà xanh matcha")
-//                            .price(180000.0)
-//                            .description("Bánh kem vị trà xanh matcha, thơm mát và bổ dưỡng.")
-//                            .quantity(12L)
-//                            .status(1)
-//                            .images(Arrays.asList("matcha_cake1.jpg", "matcha_cake2.jpg"))
-//                            .category(findCategoryByCode(categories, "BIRTH_CAKE"))
-//                            .tags(findTagsByCodes(tags, "MATCHA"))
+//                            .images(Arrays.asList(
+//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744213475/cupcake-3_doaecs.webp",
+//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744213474/cupcake-2_vgtxpx.webp"))
+//                            .category(findCategoryByCode(categories, "CUP_CAKE"))
+//                            .discount(findDiscountByCode(discounts, "DISCOUNT_5"))
+//                            .tags(findTagsByCodes(tags, "CHOCOLATE", "CHEESE", "FRUIT"))
 //                            .build(),
 //
 //                    Product.builder()
 //                            .name("Cupcake vani truyền thống")
-//                            .price(45000.0)
+//                            .price(15000.0)
 //                            .description("Cupcake vani truyền thống, mềm mịn và ngọt nhẹ.")
 //                            .quantity(25L)
 //                            .status(1)
-//                            .images(Arrays.asList("vanilla_cupcake1.jpg", "vanilla_cupcake2.jpg"))
-//                            .category(findCategoryByCode(categories, "CUPCAKE"))
-//                            .tags(findTagsByCodes(tags, "CUPCAKE", "VANILLA"))
+//                            .images(Arrays.asList("https://res.cloudinary.com/dcxgx3ott/image/upload/v1744214185/cupcake-5_jrvzfq.webp"))
+//                            .category(findCategoryByCode(categories, "CUP_CAKE"))
+//                            .discount(findDiscountByCode(discounts, "DISCOUNT_5"))
+//                            .tags(findTagsByCodes(tags, "VANILLA"))
+//                            .build(),
+//
+//                    Product.builder()
+//                            .name("Bông Lan Cacao Đậm Vị")
+//                            .price(450000.0)
+//                            .description("Bông Lan Cacao đậm vị thơm béo.")
+//                            .quantity(20L)
+//                            .status(1)
+//                            .images(Arrays.asList("https://res.cloudinary.com/dcxgx3ott/image/upload/v1744211374/sponge-3_qsse7y.png"))
+//                            .category(findCategoryByCode(categories, "SPONGE_CAKE"))
+//                            .discount(findDiscountByCode(discounts, "DISCOUNT_20"))
+//                            .tags(findTagsByCodes(tags, "CHOCOLATE", "CHEESE", "COFFEE"))
+//                            .build(),
+//
+//                    Product.builder()
+//                            .name("Bông Lan Kem Dâu Hồng")
+//                            .price(550000.0)
+//                            .description("Bông Lan Kem Dâu Hồng đậm vị thơm béo.")
+//                            .quantity(20L)
+//                            .status(1)
+//                            .images(Arrays.asList("https://res.cloudinary.com/dcxgx3ott/image/upload/v1744211374/sponge-3_qsse7y.png"))
+//                            .category(findCategoryByCode(categories, "SPONGE_CAKE"))
+//                            .discount(findDiscountByCode(discounts, "DISCOUNT_10"))
+//                            .tags(findTagsByCodes(tags, "STRAWBERRY", "CHEESE", "FRUIT"))
 //                            .build()
 //            );
 //
@@ -87,6 +127,13 @@ public class ApiMainApplication {
 //                .filter(category -> category.getCode().equals(code))
 //                .findFirst()
 //                .orElseThrow(() -> new RuntimeException("Không tìm thấy Category với code: " + code));
+//    }
+//
+//    private Discount findDiscountByCode(List<Discount> discounts, String code) {
+//        return discounts.stream()
+//                .filter(category -> category.getCode().equals(code))
+//                .findFirst()
+//                .orElseThrow(() -> new RuntimeException("Không tìm thấy discount với code: " + code));
 //    }
 //
 //    private List<Tag> findTagsByCodes(List<Tag> tags, String... codes) {
