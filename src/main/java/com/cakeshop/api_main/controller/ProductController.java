@@ -61,10 +61,6 @@ public class ProductController {
         List<String> productIds = products.stream()
                 .map(Product::getId)
                 .toList();
-        // Map: Review
-        Map<String, ProductReviewResponse> reviewStatsMap = productRepository
-                .findReviewStatsByProductIds(productIds).stream()
-                .collect(Collectors.toMap(ProductReviewResponse::getProductId, stats -> stats));
         // Map: product sold
         Map<String, Long> soldStatsMap = orderItemRepository
                 .findSoldQuantitiesByProductIds(productIds, BaseConstant.ORDER_STATUS_DELIVERED).stream()
@@ -72,9 +68,7 @@ public class ProductController {
         List<ProductResponse> productResponses = products.stream()
                 .map(product -> {
                     ProductResponse response = productMapper.fromEntityToProductResponse(product);
-                    ProductReviewResponse stats = reviewStatsMap.get(product.getId());
-                    response.setTotalReviews(stats != null ? stats.getTotalReviews() : 0L);
-                    response.setAverageRating(stats != null ? stats.getAverageRating() : 0.0);
+                    response.setImage(product.getImages().get(0));
                     response.setTotalSold(soldStatsMap.getOrDefault(product.getId(), 0L));
                     return response;
                 })

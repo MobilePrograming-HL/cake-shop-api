@@ -67,6 +67,13 @@ public class Order extends Abstract {
         calculateTotalAmount();
     }
 
+    public void calculateTotalAmount() {
+        double itemsTotal = orderItems.stream()
+                .mapToDouble(OrderItem::getTotalPrice)
+                .sum();
+        this.totalAmount = itemsTotal + (shippingFee != null ? shippingFee : 0);
+    }
+
     private void initializeOrderStatus() {
         OrderStatus orderStatus = new OrderStatus(BaseConstant.ORDER_STATUS_PENDING, new Date(), this);
         this.currentStatus = orderStatus;
@@ -91,10 +98,4 @@ public class Order extends Abstract {
                 .collect(Collectors.toList());
     }
 
-    public void calculateTotalAmount() {
-        double itemsTotal = orderItems.stream()
-                .mapToDouble(OrderItem::getTotalPrice)
-                .sum();
-        this.totalAmount = itemsTotal + (shippingFee != null ? shippingFee : 0);
-    }
 }
