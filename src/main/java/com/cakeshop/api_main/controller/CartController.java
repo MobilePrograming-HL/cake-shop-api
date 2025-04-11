@@ -94,4 +94,28 @@ public class CartController {
         cartRepository.save(cart);
         return BaseResponseUtils.success(null, "Added items to cart successfully");
     }
+
+    @PostMapping(value = "/add-item", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<Void> addToCart(
+            @Valid @RequestBody CreateCartItemRequest request
+    ) {
+        String username = SecurityUtil.getCurrentUsername();
+        Cart cart = cartRepository.findByCustomerAccountUsername(username).orElse(null);
+        if (cart == null) {
+            Customer customer = customerRepository.findByAccountUsername(username)
+                    .orElseThrow(() -> new NotFoundException("CUSTOMER_NOT_FOUND", ErrorCode.RESOURCE_NOT_EXISTED));
+            cart = Cart.builder()
+                    .customer(customer)
+                    .cartItems(new ArrayList<>())
+                    .build();
+        }
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new NotFoundException("PRODUCT_NOT_FOUND", ErrorCode.RESOURCE_NOT_EXISTED));
+        if (product.getDiscount() != null && !product.getDiscount().isActive()) {
+            productRepository.updateDiscount(null);
+        }
+        cart.addItem(product, request.getQuantity());
+        cartRepository.save(cart);
+        return BaseResponseUtils.success(null, "Added item to cart successfully");
+    }
 }

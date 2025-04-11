@@ -14,8 +14,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SpringBootApplication
@@ -30,98 +29,63 @@ public class ApiMainApplication {
 //    public CommandLineRunner initData(ICategoryRepository categoryRepository, ITagRepository tagRepository, IProductRepository productRepository, IDiscountRepository discountRepository) {
 //        return args -> {
 //            List<Category> categories = categoryRepository.findAll();
+//            Category spongeCategory = findCategoryByCode(categories, "SPONGE_CAKE");
+//            Random random = new Random();
+//            List<Product> spongeProducts = productRepository.findAll().stream()
+//                    .filter(p -> p.getCategory().getId().equals(spongeCategory.getId()))
+//                    .collect(Collectors.toList());
+//
+//            for (Product product : spongeProducts) {
+//                double newPrice = (50 + random.nextInt((150 - 50) / 10 + 1)) * 1000;
+//                product.setPrice(newPrice);
+//            }
+//
+//            productRepository.saveAll(spongeProducts);
+//            List<Category> categories = categoryRepository.findAll();
 //            List<Tag> tags = tagRepository.findAll();
 //            List<Discount> discounts = discountRepository.findAll();
 //
 //            if (categories.isEmpty() || tags.isEmpty()) {
 //                throw new RuntimeException("Cần có dữ liệu Category và Tag trước khi tạo Product.");
 //            }
-//
-//            List<Product> products = Arrays.asList(
-//                    Product.builder()
-//                            .name("Hương Tình Yêu")
-//                            .price(525000.0)
-//                            .description("Bánh cưới 'Hương Tình Yêu' mang đến sự ngọt ngào và lãng mạn, với lớp kem mềm mịn cùng thiết kế hoa trang nhã, lý tưởng cho ngày trọng đại.")
-//                            .quantity(10L)
-//                            .status(1)
-//                            .images(Arrays.asList(
-//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744210471/wedding-3_dlteib.webp",
-//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744210338/wedding-1_robivv.webp",
-//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744210509/wedding-2_mljufv.webp"
-//                            ))
-//                            .category(findCategoryByCode(categories, "WEDDING_CAKE"))
-//                            .discount(findDiscountByCode(discounts, "DISCOUNT_10"))
-//                            .tags(findTagsByCodes(tags, "VANILLA", "CHEESE"))
-//                            .build(),
-//
-//                    Product.builder()
-//                            .name("Socola Ấm Áp")
-//                            .price(15000.0)
-//                            .description("Cupcake chocolate nhỏ gọn, dễ thương, vị ngọt dịu.")
-//                            .quantity(50L)
-//                            .status(1)
-//                            .images(Arrays.asList(
-//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744208115/product-10_q4cevx.webp",
-//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744213474/cupcake-4_whytdy.webp"))
-//                            .category(findCategoryByCode(categories, "CUP_CAKE"))
-//                            .discount(findDiscountByCode(discounts, "DISCOUNT_5"))
-//                            .tags(findTagsByCodes(tags, "CHOCOLATE"))
-//                            .build(),
-//
-//                    Product.builder()
-//                            .name("Kem Mây Bồng Bềnh")
-//                            .price(15000.0)
-//                            .description("Cupcake nhỏ gọn, dễ thương, vị ngọt dịu.")
-//                            .quantity(40L)
-//                            .status(1)
-//                            .images(Arrays.asList(
-//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744213475/cupcake-3_doaecs.webp",
-//                                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744213474/cupcake-2_vgtxpx.webp"))
-//                            .category(findCategoryByCode(categories, "CUP_CAKE"))
-//                            .discount(findDiscountByCode(discounts, "DISCOUNT_5"))
-//                            .tags(findTagsByCodes(tags, "CHOCOLATE", "CHEESE", "FRUIT"))
-//                            .build(),
-//
-//                    Product.builder()
-//                            .name("Cupcake vani truyền thống")
-//                            .price(15000.0)
-//                            .description("Cupcake vani truyền thống, mềm mịn và ngọt nhẹ.")
-//                            .quantity(25L)
-//                            .status(1)
-//                            .images(Arrays.asList("https://res.cloudinary.com/dcxgx3ott/image/upload/v1744214185/cupcake-5_jrvzfq.webp"))
-//                            .category(findCategoryByCode(categories, "CUP_CAKE"))
-//                            .discount(findDiscountByCode(discounts, "DISCOUNT_5"))
-//                            .tags(findTagsByCodes(tags, "VANILLA"))
-//                            .build(),
-//
-//                    Product.builder()
-//                            .name("Bông Lan Cacao Đậm Vị")
-//                            .price(450000.0)
-//                            .description("Bông Lan Cacao đậm vị thơm béo.")
-//                            .quantity(20L)
-//                            .status(1)
-//                            .images(Arrays.asList("https://res.cloudinary.com/dcxgx3ott/image/upload/v1744211374/sponge-3_qsse7y.png"))
-//                            .category(findCategoryByCode(categories, "SPONGE_CAKE"))
-//                            .discount(findDiscountByCode(discounts, "DISCOUNT_20"))
-//                            .tags(findTagsByCodes(tags, "CHOCOLATE", "CHEESE", "COFFEE"))
-//                            .build(),
-//
-//                    Product.builder()
-//                            .name("Bông Lan Kem Dâu Hồng")
-//                            .price(550000.0)
-//                            .description("Bông Lan Kem Dâu Hồng đậm vị thơm béo.")
-//                            .quantity(20L)
-//                            .status(1)
-//                            .images(Arrays.asList("https://res.cloudinary.com/dcxgx3ott/image/upload/v1744211374/sponge-3_qsse7y.png"))
-//                            .category(findCategoryByCode(categories, "SPONGE_CAKE"))
-//                            .discount(findDiscountByCode(discounts, "DISCOUNT_10"))
-//                            .tags(findTagsByCodes(tags, "STRAWBERRY", "CHEESE", "FRUIT"))
-//                            .build()
+//            List<String> images = Arrays.asList(
+//                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744214185/cupcake-5_jrvzfq.webp",
+//                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744213475/cupcake-3_doaecs.webp",
+//                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744213474/cupcake-4_whytdy.webp",
+//                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744213474/cupcake-2_vgtxpx.webp",
+//                    "https://res.cloudinary.com/dcxgx3ott/image/upload/v1744208115/product-10_q4cevx.webp"
 //            );
+//            List<Product> products = new ArrayList<>();
+//            Random random = new Random();
+//            for (int i = 1; i <= 10; i++) {
+//                Discount randomDiscount = discounts.get(i % discounts.size());
+//                List<Tag> shuffledTags = new ArrayList<>(tags);
+//                Collections.shuffle(shuffledTags, random);
+//                List<Tag> randomTags = shuffledTags.subList(0, 3);
+//                double randomPrice = (15 + random.nextInt((30 - 15) / 10 + 1)) * 1000;
+//                long randomQuantity = 20 + random.nextInt(41);
+//                List<String> shuffledImages = new ArrayList<>(images);
+//                Collections.shuffle(shuffledImages, random);
+//                List<String> randomImages = shuffledImages.subList(2, 5);
+//                Product product = Product.builder()
+//                        .name("Cup cake " + i)
+//                        .price(randomPrice)
+//                        .description("Mô tả cup cake " + i)
+//                        .quantity(randomQuantity)
+//                        .status(1)
+//                        .images(randomImages)
+//                        .category(findCategoryByCode(categories, "CUP_CAKE"))
+//                        .discount(randomDiscount)
+//                        .tags(randomTags)
+//                        .build();
+//
+//                products.add(product);
+//            }
 //
 //            productRepository.saveAll(products);
 //        };
 //    }
+//
 //    private Category findCategoryByCode(List<Category> categories, String code) {
 //        return categories.stream()
 //                .filter(category -> category.getCode().equals(code))
