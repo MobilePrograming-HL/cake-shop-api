@@ -33,29 +33,27 @@ public class Cart extends Abstract {
         for (Map.Entry<Product, Integer> entry : productQuantityMap.entrySet()) {
             Product product = entry.getKey();
             int quantity = entry.getValue();
-            if (product.checkQuantity(quantity)) {
-                addItem(product, quantity);
-            } else {
-                throw new BadRequestException(
-                        "Insufficient quantity for product: " + product.getId(),
-                        ErrorCode.INVALID_FORM_ERROR);
-            }
+            addItem(product, quantity);
+
         }
     }
 
     public void addItem(Product product, int quantity) {
-        Optional<CartItem> existingItem = cartItems.stream()
-                .filter(item -> item.getProduct().getId().equals(product.getId()))
-                .findFirst();
-        if (existingItem.isPresent()) {
-            CartItem cartItem = existingItem.get();
-            cartItem.setQuantity(cartItem.getQuantity() + quantity);
-        } else {
-            CartItem newItem = CartItem.builder()
-                    .cart(this)
-                    .product(product)
-                    .quantity(quantity)
-                    .build();
+        if (!product.checkQuantity(quantity)) {
+            throw new BadRequestException(
+                    "Insufficient quantity for product: " + product.getId(),
+                    ErrorCode.INVALID_FORM_ERROR);
+        }
+        boolean found = false;
+        for (CartItem item : cartItems) {
+            if (item.getProduct().getId().equals(product.getId())) {
+                item.setQuantity(item.getQuantity() + quantity);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            CartItem newItem = new CartItem(product, quantity, this);
             cartItems.add(newItem);
         }
     }
