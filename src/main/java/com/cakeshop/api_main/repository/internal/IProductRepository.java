@@ -25,14 +25,4 @@ public interface IProductRepository extends JpaRepository<Product, String>, JpaS
     @Modifying
     @Query("UPDATE Product p SET p.discount = :discount WHERE p.category.id = :categoryId")
     void updateDiscount(@Param("discount") Discount discount, @Param("categoryId") String categoryId);
-
-    @Query("""
-            SELECT new com.cakeshop.api_main.dto.response.product.ProductReviewResponse(
-                r.product.id, COUNT(r), AVG(r.rate)
-            )
-            FROM Review r
-            WHERE r.product.id IN :productIds
-            GROUP BY r.product.id
-            """)
-    List<ProductReviewResponse> findReviewStatsByProductIds(@Param("productIds") List<String> productIds);
 }

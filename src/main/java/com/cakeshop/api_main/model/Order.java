@@ -59,10 +59,10 @@ public class Order extends Abstract {
         this.paymentMethod = paymentMethod;
     }
 
-    public void makeOrder(List<OrderItemDetails> orderItemDetailsList) {
+    public void makeOrder(List<OrderItemDetails> orderItemList) {
         initializeOrderStatus();
 
-        initializeOrderItems(orderItemDetailsList);
+        initializeOrderItems(orderItemList);
 
         calculateTotalAmount();
     }
@@ -80,8 +80,8 @@ public class Order extends Abstract {
         this.orderStatuses.add(orderStatus);
     }
 
-    private void initializeOrderItems(List<OrderItemDetails> orderItemDetailsList) {
-        this.orderItems = orderItemDetailsList.stream()
+    private void initializeOrderItems(List<OrderItemDetails> orderItemList) {
+        this.orderItems = orderItemList.stream()
                 .map(entry -> {
                     Product product = entry.getProduct();
                     int quantity = entry.getQuantity();
