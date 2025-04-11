@@ -5,12 +5,14 @@ VALUES ('beaaf975-0b71-11f0-93e5-0242ac110002', 'Administrator group', b'1', 1, 
        ('f5ca64e7-0b71-11f0-93e5-0242ac110002', 'Customer group', b'1', 2, 'Customer', '2025-03-28 01:14:13',
         '2025-03-28 01:14:13');
 
--- Dumping data for table db_cake_shop.tbl_account: ~0 rows (approximately)
-INSERT INTO `tbl_account` (`id`, `username`, `password`, `is_active`, `email`, `avatar_path`, `group_id`, `created_at`,
-                           `updated_at`)
-VALUES ('cc6b725f-0b7f-11f0-93e5-0242ac110002', 'admin', '$2a$10$6Rdxpba/3kSoI8ofL7qbuOsHFGoeBXIGyzjySVxXeuLU4MlgCSJd6',
-        b'1', 'admin@gmail.com', '', 'beaaf975-0b71-11f0-93e5-0242ac110002', '2025-03-28 02:53:16',
-        '2025-03-28 02:53:16');
+-- Dumping data for table db_cake_shop.tbl_account: ~6 rows (approximately)
+INSERT INTO `tbl_account` (`id`, `username`, `password`, `is_active`, `email`, `avatar_path`, `group_id`, `created_at`, `updated_at`) VALUES
+  ('6b0df43b-e616-46d6-a48c-2a0f3e09ab80', 'nguyenvand', '$2a$10$319y3YT5k6Gm1xPcqAiHVeuUlEyY0BEgk/7F4.0JBvx5sv3t6VcsG', b'1', 'd@gmail.com', 'https://res.cloudinary.com/dcxgx3ott/image/upload/v1744349601/Avatar_UTE_hddqyo.png', 'f5ca64e7-0b71-11f0-93e5-0242ac110002', '2025-04-11 12:50:19', '2025-04-11 12:50:19'),
+  ('6dd654df-7407-45a5-9ef6-053a3919871b', 'nguyenvana', '$2a$10$cmhuTXhPpthpKXdzzNEptONUchasPseFI8o.dHkExD3DGP4po1Y4y', b'1', 'A@gmail.com', 'https://res.cloudinary.com/dcxgx3ott/image/upload/v1744349601/Avatar_UTE_hddqyo.png', 'f5ca64e7-0b71-11f0-93e5-0242ac110002', '2025-04-11 12:45:51', '2025-04-11 12:45:51'),
+  ('7f196824-86ad-473b-a42f-59f5b2e25763', 'nguyenvane', '$2a$10$tSuEd1okep1EtkX26OUKMuDcExhyO3J7G0bp3P1LeN7PHe8kp80WS', b'1', 'e@gmail.com', 'https://res.cloudinary.com/dcxgx3ott/image/upload/v1744349601/Avatar_UTE_hddqyo.png', 'f5ca64e7-0b71-11f0-93e5-0242ac110002', '2025-04-11 12:50:19', '2025-04-11 12:50:19'),
+  ('aa19a747-0dee-4dff-9268-18fe63cd4838', 'nguyenvanb', '$2a$10$ehg6rLvxcadiGjNd9kjsT.pNA3I1wmcnO3RVUbz9coPBDAuhtCBCy', b'1', 'b@gmail.com', 'https://res.cloudinary.com/dcxgx3ott/image/upload/v1744349601/Avatar_UTE_hddqyo.png', 'f5ca64e7-0b71-11f0-93e5-0242ac110002', '2025-04-11 12:50:19', '2025-04-11 12:50:19'),
+  ('c301a438-824a-45a7-9bc6-250e7bfbda7f', 'nguyenvanc', '$2a$10$4CuPBovEIN7xMxg7C6mreOCvymieoaQp0WR/KXQ7CZG9s5L5AmtuG', b'1', 'c@gmail.com', 'https://res.cloudinary.com/dcxgx3ott/image/upload/v1744349601/Avatar_UTE_hddqyo.png', 'f5ca64e7-0b71-11f0-93e5-0242ac110002', '2025-04-11 12:50:19', '2025-04-11 12:50:19'),
+  ('cc6b725f-0b7f-11f0-93e5-0242ac110002', 'admin', '$2a$10$6Rdxpba/3kSoI8ofL7qbuOsHFGoeBXIGyzjySVxXeuLU4MlgCSJd6', b'1', 'admin@gmail.com', '', 'beaaf975-0b71-11f0-93e5-0242ac110002', '2025-03-28 02:53:16', '2025-03-28 02:53:16');
 
 -- Dumping data for table db_cake_shop.tbl_permission: ~9 rows (approximately)
 INSERT INTO `tbl_permission` (`id`, `action`, `code`, `name`, `description`, `created_at`, `updated_at`)
@@ -53,6 +55,14 @@ VALUES ('beaaf975-0b71-11f0-93e5-0242ac110002', '340bb59f-0b80-11f0-93e5-0242ac1
        ('beaaf975-0b71-11f0-93e5-0242ac110002', '33410c77-0d79-11f0-88b5-0242ac110002'),
        ('beaaf975-0b71-11f0-93e5-0242ac110002', '59d13e87-0d79-11f0-88b5-0242ac110002'),
        ('beaaf975-0b71-11f0-93e5-0242ac110002', '6cf0f02c-0d79-11f0-88b5-0242ac110002');
+
+-- Dumping data for table db_cake_shop.tbl_customer: ~5 rows (approximately)
+INSERT INTO `tbl_customer` (`id`, `first_name`, `last_name`, `dob`, `loyalty`, `created_at`, `updated_at`) VALUES
+   ('6b0df43b-e616-46d6-a48c-2a0f3e09ab80', 'D', 'Nguyen', '1995-12-05 00:00:00.000000', 180, '2025-04-11 12:50:18.886000', '2025-04-11 12:50:18.886000'),
+   ('6dd654df-7407-45a5-9ef6-053a3919871b', 'A', 'Nguyen', '2004-08-02 00:00:00.000000', 100, '2025-04-11 12:45:50.582000', '2025-04-11 12:45:50.582000'),
+   ('7f196824-86ad-473b-a42f-59f5b2e25763', 'E', 'Nguyen', '2001-03-10 00:00:00.000000', 320, '2025-04-11 12:50:18.975000', '2025-04-11 12:50:18.975000'),
+   ('aa19a747-0dee-4dff-9268-18fe63cd4838', 'B', 'Nguyen', '2000-01-15 00:00:00.000000', 250, '2025-04-11 12:50:18.706000', '2025-04-11 12:50:18.706000'),
+   ('c301a438-824a-45a7-9bc6-250e7bfbda7f', 'C', 'Nguyen', '1998-05-20 00:00:00.000000', 400, '2025-04-11 12:50:18.792000', '2025-04-11 12:50:18.792000');
 
 -- Dumping data for table db_cake_shop.tbl_category: ~1 rows (approximately)
 INSERT INTO `tbl_category` (`id`, `code`, `name`, `description`, `image`, `created_at`, `updated_at`)
@@ -376,3 +386,26 @@ INSERT INTO `tbl_product_tag` (`product_id`, `tag_id`) VALUES
    ('c2cfc919-6e76-47e5-bec9-65d97a22aa5b', 'e5c796ad-0893-4dd5-a29b-23d49a3b3647'),
    ('c6c06031-2c45-4bb5-ab49-361b1f093867', 'e5c796ad-0893-4dd5-a29b-23d49a3b3647'),
    ('e5434532-1b8b-40c3-8047-4c9cd1a1225f', 'e5c796ad-0893-4dd5-a29b-23d49a3b3647');
+
+-- Dumping data for table db_cake_shop.tbl_review: ~20 rows (approximately)
+INSERT INTO `tbl_review` (`id`, `created_at`, `updated_at`, `content`, `rate`, `customer_id`, `product_id`) VALUES
+    ('159501ef-25fa-4229-abea-bb4bf7beac6b', '2025-04-11 13:11:35.932000', '2025-04-11 13:11:35.932000', 'Chất lượng tuyệt vời!', 5, '6dd654df-7407-45a5-9ef6-053a3919871b', 'a68b26cd-e6b0-426b-a070-abf4c98182a2'),
+    ('181a9a7f-d5aa-4fd1-a6c6-c11ab217e742', '2025-04-11 13:11:35.907000', '2025-04-11 13:11:35.907000', 'Bánh quá ngon, mình sẽ mua lại!', 5, '6b0df43b-e616-46d6-a48c-2a0f3e09ab80', 'a68b26cd-e6b0-426b-a070-abf4c98182a2'),
+    ('1cdd4d8a-c7b8-47bf-b847-976eb4b6ed1e', '2025-04-11 13:12:47.883000', '2025-04-11 13:12:47.883000', 'Tạm ổn, không đặc biệt lắm.', 3, 'c301a438-824a-45a7-9bc6-250e7bfbda7f', 'd73bbb9e-e4f9-44e7-a826-cc0a5118b8cf'),
+    ('4c7025a9-a6cc-4cab-a312-7e4c482c9578', '2025-04-11 13:12:47.857000', '2025-04-11 13:12:47.857000', 'Ổn áp, phù hợp giá tiền.', 4, '7f196824-86ad-473b-a42f-59f5b2e25763', 'd73bbb9e-e4f9-44e7-a826-cc0a5118b8cf'),
+    ('75abb163-2aeb-4341-9fa6-7a482c1a2c07', '2025-04-11 13:08:40.874000', '2025-04-11 13:08:40.874000', 'Mùi vị ổn, đóng gói đẹp.', 4, 'aa19a747-0dee-4dff-9268-18fe63cd4838', '7c008281-a5e3-453d-9091-97224f849216'),
+    ('7bb7ef5c-0dd0-428f-9b98-4e544a701877', '2025-04-11 13:13:47.851000', '2025-04-11 13:13:47.851000', 'Tạm ổn, không đặc biệt lắm.', 3, 'c301a438-824a-45a7-9bc6-250e7bfbda7f', 'affb5df4-e943-4540-b9e4-1b74bf1646c0'),
+    ('7eaab934-2455-403e-ba39-d28de4962fd6', '2025-04-11 13:13:47.832000', '2025-04-11 13:13:47.832000', 'Ổn áp, phù hợp giá tiền.', 4, '7f196824-86ad-473b-a42f-59f5b2e25763', 'affb5df4-e943-4540-b9e4-1b74bf1646c0'),
+    ('86cca735-176a-4d15-969a-c89a50980003', '2025-04-11 13:12:47.822000', '2025-04-11 13:12:47.822000', 'Bánh quá ngon, mình sẽ mua lại!', 5, '6b0df43b-e616-46d6-a48c-2a0f3e09ab80', 'd73bbb9e-e4f9-44e7-a826-cc0a5118b8cf'),
+    ('88fcad78-38f1-4701-88ba-3c8484fd1bb4', '2025-04-11 13:11:35.963000', '2025-04-11 13:11:35.963000', 'Tạm ổn, không đặc biệt lắm.', 3, 'c301a438-824a-45a7-9bc6-250e7bfbda7f', 'a68b26cd-e6b0-426b-a070-abf4c98182a2'),
+    ('8a6bb849-9522-4b6e-ab63-9042c064f24e', '2025-04-11 13:11:35.952000', '2025-04-11 13:11:35.952000', 'Mùi vị ổn, đóng gói đẹp.', 4, 'aa19a747-0dee-4dff-9268-18fe63cd4838', 'a68b26cd-e6b0-426b-a070-abf4c98182a2'),
+    ('8d22e850-c7cf-4f1f-b3f8-3322fca01142', '2025-04-11 13:08:40.884000', '2025-04-11 13:08:40.884000', 'Tạm ổn, không đặc biệt lắm.', 3, 'c301a438-824a-45a7-9bc6-250e7bfbda7f', '7c008281-a5e3-453d-9091-97224f849216'),
+    ('9c9437e2-67c6-40cc-bd08-67f70163138d', '2025-04-11 13:12:47.868000', '2025-04-11 13:12:47.868000', 'Mùi vị ổn, đóng gói đẹp.', 4, 'aa19a747-0dee-4dff-9268-18fe63cd4838', 'd73bbb9e-e4f9-44e7-a826-cc0a5118b8cf'),
+    ('b8602ca2-304f-4e0d-abd4-8f3fd293a455', '2025-04-11 13:13:47.797000', '2025-04-11 13:13:47.797000', 'Bánh quá ngon, mình sẽ mua lại!', 5, '6b0df43b-e616-46d6-a48c-2a0f3e09ab80', 'affb5df4-e943-4540-b9e4-1b74bf1646c0'),
+    ('cfbdf54a-e8ab-43c8-817f-146d21f29cc5', '2025-04-11 13:13:47.822000', '2025-04-11 13:13:47.822000', 'Chất lượng tuyệt vời!', 5, '6dd654df-7407-45a5-9ef6-053a3919871b', 'affb5df4-e943-4540-b9e4-1b74bf1646c0'),
+    ('d8fdf081-17e6-4d51-bd6a-800d3fb45466', '2025-04-11 13:08:40.849000', '2025-04-11 13:08:40.849000', 'Chất lượng tuyệt vời!', 5, '6dd654df-7407-45a5-9ef6-053a3919871b', '7c008281-a5e3-453d-9091-97224f849216'),
+    ('ee9f8ca8-aab2-4de8-9655-5a8a0448d708', '2025-04-11 13:08:40.827000', '2025-04-11 13:08:40.827000', 'Bánh quá ngon, mình sẽ mua lại!', 5, '6b0df43b-e616-46d6-a48c-2a0f3e09ab80', '7c008281-a5e3-453d-9091-97224f849216'),
+    ('f099abf8-9e9c-4a48-98c0-b0ca2e365978', '2025-04-11 13:11:35.942000', '2025-04-11 13:11:35.942000', 'Ổn áp, phù hợp giá tiền.', 4, '7f196824-86ad-473b-a42f-59f5b2e25763', 'a68b26cd-e6b0-426b-a070-abf4c98182a2'),
+    ('f6571473-1858-44af-aa23-883f82f3e043', '2025-04-11 13:08:40.863000', '2025-04-11 13:08:40.863000', 'Ổn áp, phù hợp giá tiền.', 4, '7f196824-86ad-473b-a42f-59f5b2e25763', '7c008281-a5e3-453d-9091-97224f849216'),
+    ('fa4febe1-08e9-49a2-994d-f5dd1fa2729b', '2025-04-11 13:13:47.842000', '2025-04-11 13:13:47.842000', 'Mùi vị ổn, đóng gói đẹp.', 4, 'aa19a747-0dee-4dff-9268-18fe63cd4838', 'affb5df4-e943-4540-b9e4-1b74bf1646c0'),
+    ('faac1606-b471-4c6d-bf9f-9ca844c9fe45', '2025-04-11 13:12:47.843000', '2025-04-11 13:12:47.843000', 'Chất lượng tuyệt vời!', 5, '6dd654df-7407-45a5-9ef6-053a3919871b', 'd73bbb9e-e4f9-44e7-a826-cc0a5118b8cf');

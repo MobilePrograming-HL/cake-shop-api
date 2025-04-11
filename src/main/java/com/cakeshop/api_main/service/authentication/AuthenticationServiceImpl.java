@@ -143,7 +143,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             Account newAccount = Account.builder()
                     .username(request.getUsername())
                     .email(request.getEmail())
-                    .avatarPath("https://kenh14cdn.com/203336854389633024/2024/10/16/chuong-nhuoc-nam1-1729084853586986899768-1729096455287-17290964555741951663122.jpg")
+                    .avatarPath("https://res.cloudinary.com/dcxgx3ott/image/upload/v1744349601/Avatar_UTE_hddqyo.png")
                     .password(passwordEncoder.encode(request.getPassword()))
                     .isActive(false)
                     .build();
