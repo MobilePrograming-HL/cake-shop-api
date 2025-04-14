@@ -1,7 +1,6 @@
 package com.cakeshop.api_main.controller;
 
 import com.cakeshop.api_main.constant.BaseConstant;
-import com.cakeshop.api_main.dto.request.nation.UpdateNationRequest;
 import com.cakeshop.api_main.dto.request.order.CreateOrderRequest;
 import com.cakeshop.api_main.dto.request.order.UpdateOrderStatusRequest;
 import com.cakeshop.api_main.dto.request.orderItem.CreateOrderItemRequest;
@@ -15,7 +14,10 @@ import com.cakeshop.api_main.exception.ErrorCode;
 import com.cakeshop.api_main.exception.NotFoundException;
 import com.cakeshop.api_main.mapper.OrderMapper;
 import com.cakeshop.api_main.mapper.OrderStatusMapper;
-import com.cakeshop.api_main.model.*;
+import com.cakeshop.api_main.model.Customer;
+import com.cakeshop.api_main.model.Order;
+import com.cakeshop.api_main.model.OrderStatus;
+import com.cakeshop.api_main.model.Product;
 import com.cakeshop.api_main.model.criteria.OrderCriteria;
 import com.cakeshop.api_main.repository.internal.ICustomerRepository;
 import com.cakeshop.api_main.repository.internal.IOrderRepository;
@@ -31,9 +33,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -119,7 +124,7 @@ public class OrderController {
             orderItemDetailsList.add(new OrderItemDetails(product, item.getQuantity(), item.getNote()));
         }
 
-        Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod());
+        Order order = new Order(customer, request.getShippingFee());
         order.makeOrder(orderItemDetailsList);
         orderRepository.save(order);
 
@@ -140,6 +145,16 @@ public class OrderController {
         } else {
             throw new BadRequestException("Unexpected error: Order not in fetched list", ErrorCode.INVALID_FORM_ERROR);
         }
+        orderRepository.save(order);
+        return BaseResponseUtils.success(null, "Update order status successfully");
+    }
+
+    @PutMapping(value = "/cancel/{orderId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<Void> cancelOrder(
+            @PathVariable String orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("ORDER_NOT_FOUND", ErrorCode.RESOURCE_NOT_EXISTED));
+        order.cancel();
         orderRepository.save(order);
         return BaseResponseUtils.success(null, "Update order status successfully");
     }

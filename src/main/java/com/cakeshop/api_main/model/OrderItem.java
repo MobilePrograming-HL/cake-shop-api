@@ -1,11 +1,10 @@
 package com.cakeshop.api_main.model;
 
+import com.cakeshop.api_main.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.util.Date;
 
 @Entity
 @Table(name = "tbl_order_item")
@@ -17,7 +16,7 @@ import java.util.Date;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderItem extends Abstract {
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "product_id")
     Product product;
 
@@ -46,7 +45,7 @@ public class OrderItem extends Abstract {
         this.note = note;
         this.order = order;
         this.unitPrice = product.getPrice();
-        this.unitDiscountPercentage = getDiscountPercentage(product);
+        this.unitDiscountPercentage = product.getDiscountPercentage();
     }
 
     public void calculateTotalPrice() {
@@ -56,11 +55,5 @@ public class OrderItem extends Abstract {
 
         double discountAmount = basePrice * discount / 100.0;
         this.totalPrice = (basePrice - discountAmount) * quantity;
-    }
-
-    private Integer getDiscountPercentage(Product product) {
-        return (product.getDiscount() != null && product.getDiscount().getDiscountPercentage() != null)
-                ? product.getDiscount().getDiscountPercentage()
-                : 0;
     }
 }

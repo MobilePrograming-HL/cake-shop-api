@@ -10,10 +10,13 @@ import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Entity
@@ -53,10 +56,9 @@ public class Order extends Abstract {
     @Column(name = "total_discount")
     Double totalDiscount = 0.0;
 
-    public Order(Customer customer, Integer shippingFee, Integer paymentMethod) {
+    public Order(Customer customer, Integer shippingFee) {
         this.customer = customer;
         this.shippingFee = shippingFee;
-        this.paymentMethod = paymentMethod;
     }
 
     public void makeOrder(List<OrderItemDetails> orderItemList) {
@@ -93,9 +95,36 @@ public class Order extends Abstract {
                     }
                     OrderItem orderItem = new OrderItem(product, quantity, note, this);
                     orderItem.calculateTotalPrice();
+                    product.setQuantity(product.getQuantity() - quantity);
                     return orderItem;
                 })
                 .collect(Collectors.toList());
+    }
+
+    public void cancel() {
+        LocalDateTime createdAtLocal = this.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime now = LocalDateTime.now();
+        if (Duration.between(createdAtLocal, now).toDays() > 3) {
+            throw new BadRequestException("Đơn hàng chỉ có thể hủy trong vòng 3 ngày", ErrorCode.INVALID_FORM_ERROR);
+        }
+
+        Integer status = currentStatus.getStatus();
+        if (!Objects.equals(status, BaseConstant.ORDER_STATUS_PENDING) &&
+                !Objects.equals(status, BaseConstant.ORDER_STATUS_PROCESSING)) {
+            throw new BadRequestException("Chỉ có thể hủy đơn ở trạng thái Chờ xác nhận hoặc Đang xử lý", ErrorCode.INVALID_FORM_ERROR);
+        }
+
+        for (OrderItem item : this.getOrderItems()) {
+            Product product = item.getProduct();
+            if (product != null) {
+                Long current = product.getQuantity() != null ? product.getQuantity() : 0L;
+                product.setQuantity(current + item.getQuantity());
+            }
+        }
+
+        OrderStatus cancelStatus = new OrderStatus(BaseConstant.ORDER_STATUS_CANCELED, new Date(), this);
+        this.setCurrentStatus(cancelStatus);
+        this.getOrderStatuses().add(cancelStatus);
     }
 
 }

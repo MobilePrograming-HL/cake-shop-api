@@ -26,34 +26,37 @@ public class Cart extends Abstract {
     @JoinColumn(name = "customer_id")
     Customer customer;
 
-    @OneToMany(mappedBy = "cart")
+    @OrderBy("createdAt DESC")
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
     List<CartItem> cartItems = new ArrayList<>();
 
     public void addItems(Map<Product, Integer> productQuantityMap) {
         for (Map.Entry<Product, Integer> entry : productQuantityMap.entrySet()) {
             Product product = entry.getKey();
             int quantity = entry.getValue();
-            addItem(product, quantity);
-
+            if (product.checkQuantity(quantity)) {
+                addItem(product, quantity);
+            } else {
+                throw new BadRequestException(
+                        "Insufficient quantity for product: " + product.getId(),
+                        ErrorCode.INVALID_FORM_ERROR);
+            }
         }
     }
 
     public void addItem(Product product, int quantity) {
-        if (!product.checkQuantity(quantity)) {
-            throw new BadRequestException(
-                    "Insufficient quantity for product: " + product.getId(),
-                    ErrorCode.INVALID_FORM_ERROR);
-        }
-        boolean found = false;
-        for (CartItem item : cartItems) {
-            if (item.getProduct().getId().equals(product.getId())) {
-                item.setQuantity(item.getQuantity() + quantity);
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            CartItem newItem = new CartItem(product, quantity, this);
+        Optional<CartItem> existingItem = cartItems.stream()
+                .filter(item -> item.getProduct().getId().equals(product.getId()))
+                .findFirst();
+        if (existingItem.isPresent()) {
+            CartItem cartItem = existingItem.get();
+            cartItem.setQuantity(cartItem.getQuantity() + quantity);
+        } else {
+            CartItem newItem = CartItem.builder()
+                    .cart(this)
+                    .product(product)
+                    .quantity(quantity)
+                    .build();
             cartItems.add(newItem);
         }
     }

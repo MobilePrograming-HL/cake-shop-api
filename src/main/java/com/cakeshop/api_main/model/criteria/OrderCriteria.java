@@ -1,7 +1,6 @@
 package com.cakeshop.api_main.model.criteria;
 
 import com.cakeshop.api_main.model.Order;
-import com.cakeshop.api_main.model.Product;
 import com.cakeshop.api_main.model.criteria.base.BaseCriteria;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -15,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -24,6 +24,7 @@ public class OrderCriteria extends BaseCriteria<Order> {
 
     String customerId;
     Integer status;
+    Date createdAt;
 
     @Override
     public Specification<Order> getSpecification() {
@@ -36,6 +37,9 @@ public class OrderCriteria extends BaseCriteria<Order> {
             if (getStatus() != null) {
                 predicates.add(cb.equal(root.get("currentStatus").get("status"), getStatus()));
             }
+
+            assert query != null;
+            query.orderBy(cb.desc(root.get("createdAt")));
 
             return cb.and(predicates.toArray(Predicate[]::new));
         };
