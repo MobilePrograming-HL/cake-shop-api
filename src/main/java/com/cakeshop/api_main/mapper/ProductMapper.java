@@ -69,6 +69,6 @@ public interface ProductMapper {
 
     @Named("mapFirstImage")
     default String mapFirstImage(List<String> images) {
-        return (images != null && !images.isEmpty()) ? images.getFirst() : null;
+        return (images != null && !images.isEmpty()) ? images.get(0) : null;
     }
 }
