@@ -2,6 +2,7 @@ package com.cakeshop.api_main.dto.response.address;
 
 import com.cakeshop.api_main.dto.response.nation.NationResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +24,12 @@ public class AddressResponse {
 
     @Schema(description = "details")
     String details;
+
+    @Schema(description = "fullName")
+    String fullName;
+
+    @Schema(description = "phoneNumber")
+    String phoneNumber;
 
     @Schema(description = "isDefault")
     String isDefault;

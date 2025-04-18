@@ -1,5 +1,6 @@
 package com.cakeshop.api_main.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -7,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -34,14 +36,20 @@ public class Customer {
     @Column(name = "last_name")
     String lastName;
 
+    @Column(name = "full_name")
+    String fullName;
+
     @Column(name = "dob")
     Date dob;
+
+    @Column(name = "phone_number")
+    String phoneNumber;
 
     @Column(name = "loyalty")
     Long loyalty;
 
     @OneToMany(mappedBy = "customer")
-    List<Address> addresses;
+    List<Address> addresses = new ArrayList<>();
 
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)

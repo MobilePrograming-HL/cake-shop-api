@@ -16,6 +16,8 @@ public interface AddressMapper {
     @Mapping(source = "commune", target = "commune", qualifiedByName = "fromEntityToNationResponseAutoComplete")
     @Mapping(source = "details", target = "details")
     @Mapping(source = "isDefault", target = "isDefault")
+    @Mapping(source = "fullName", target = "fullName")
+    @Mapping(source = "phoneNumber", target = "phoneNumber")
     @BeanMapping(ignoreByDefault = true)
     @Named("fromEntityToAddressResponse")
     AddressResponse fromEntityToAddressResponse(Address address);

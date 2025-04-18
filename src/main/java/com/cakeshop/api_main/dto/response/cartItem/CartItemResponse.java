@@ -1,6 +1,7 @@
 package com.cakeshop.api_main.dto.response.cartItem;
 
 import com.cakeshop.api_main.dto.response.product.ProductResponse;
+import com.cakeshop.api_main.dto.response.tag.TagResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -13,6 +14,8 @@ public class CartItemResponse {
     String id;
     @Schema(description = "product")
     ProductResponse product;
+    @Schema(description = "tag")
+    TagResponse tag;
     @Schema(description = "quantity")
     Integer quantity;
 }

@@ -20,11 +20,12 @@ public class OrderItem extends Abstract {
     @JoinColumn(name = "product_id")
     Product product;
 
+    @ManyToOne
+    @JoinColumn(name = "tag_id")
+    Tag tag;
+
     @Column(name = "quantity")
     Integer quantity;
-
-    @Column(name = "note")
-    String note;
 
     @Column(name = "unit_price")
     Double unitPrice = 0.0;
@@ -39,10 +40,9 @@ public class OrderItem extends Abstract {
     @JoinColumn(name = "order_id")
     Order order;
 
-    public OrderItem(Product product, Integer quantity, String note, Order order) {
+    public OrderItem(Product product, Integer quantity, Order order) {
         this.product = product;
         this.quantity = quantity;
-        this.note = note;
         this.order = order;
         this.unitPrice = product.getPrice();
         this.unitDiscountPercentage = product.getDiscountPercentage();
@@ -54,6 +54,6 @@ public class OrderItem extends Abstract {
         int quantity = this.quantity != null ? this.quantity : 0;
 
         double discountAmount = basePrice * discount / 100.0;
-        this.totalPrice = (basePrice - discountAmount) * quantity;
+        this.totalPrice = Math.floor((basePrice - discountAmount) * quantity);
     }
 }

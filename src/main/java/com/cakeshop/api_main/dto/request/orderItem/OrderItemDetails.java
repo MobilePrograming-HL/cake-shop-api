@@ -1,6 +1,7 @@
 package com.cakeshop.api_main.dto.request.orderItem;
 
 import com.cakeshop.api_main.model.Product;
+import com.cakeshop.api_main.model.Tag;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -16,6 +17,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderItemDetails {
     Product product;
+    Tag tag;
     int quantity;
-    String note;
 }

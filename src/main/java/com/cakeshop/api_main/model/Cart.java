@@ -30,21 +30,7 @@ public class Cart extends Abstract {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
     List<CartItem> cartItems = new ArrayList<>();
 
-    public void addItems(Map<Product, Integer> productQuantityMap) {
-        for (Map.Entry<Product, Integer> entry : productQuantityMap.entrySet()) {
-            Product product = entry.getKey();
-            int quantity = entry.getValue();
-            if (product.checkQuantity(quantity)) {
-                addItem(product, quantity);
-            } else {
-                throw new BadRequestException(
-                        "Insufficient quantity for product: " + product.getId(),
-                        ErrorCode.INVALID_FORM_ERROR);
-            }
-        }
-    }
-
-    public void addItem(Product product, int quantity) {
+    public void addItem(Product product, Tag tag, int quantity) {
         Optional<CartItem> existingItem = cartItems.stream()
                 .filter(item -> item.getProduct().getId().equals(product.getId()))
                 .findFirst();
@@ -55,6 +41,7 @@ public class Cart extends Abstract {
             CartItem newItem = CartItem.builder()
                     .cart(this)
                     .product(product)
+                    .tag(tag)
                     .quantity(quantity)
                     .build();
             cartItems.add(newItem);
