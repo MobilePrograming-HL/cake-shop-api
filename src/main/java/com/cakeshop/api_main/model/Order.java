@@ -56,6 +56,10 @@ public class Order extends Abstract {
     @Column(name = "total_discount")
     Double totalDiscount = 0.0;
 
+    @ManyToOne
+    @JoinColumn(name = "address_id")
+    Address address;
+
     public Order(Customer customer, Integer shippingFee) {
         this.customer = customer;
         this.shippingFee = shippingFee;
