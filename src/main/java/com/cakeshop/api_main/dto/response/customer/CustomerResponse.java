@@ -27,10 +27,12 @@ public class CustomerResponse {
     String firstName;
     @Schema(description = "lastName")
     String lastName;
+    @Schema(description = "fullName")
+    String fullName;
     @Schema(description = "dob")
     Date dob;
+    @Schema(description = "phoneNumber")
+    String phoneNumber;
     @Schema(description = "loyalty")
     Long loyalty;
-    @Schema(description = "addresses")
-    List<AddressResponse> addresses;
 }
