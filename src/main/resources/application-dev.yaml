@@ -77,10 +77,10 @@ outbound:
 
 payment:
   vnPay:
-    url: ${VNPAY_URL}
-    tmnCode: ${VNPAY_TMN_CODE}
-    secretKey: ${VNPAY_SECRET_KEY}
-    returnUrl: ${VNPAY_RETURN_URL}
-    version: ${VNPAY_VERSION}
-    command: ${VNPAY_COMMAND}
-    orderType: ${VNPAY_ORDER_TYPE}
+    url: ${PAY_URL}
+    tmnCode: ${TMN_CODE}
+    secretKey: ${SECRET_KEY}
+    returnUrl: ${RETURN_URL}
+    version: ${VERSION}
+    command: ${COMMAND}
+    orderType: ${ORDER_TYPE}
