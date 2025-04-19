@@ -2,12 +2,12 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <changeSet author="Authentication" id="1744951938765-6">
         <addColumn tableName="tbl_cart_item">
-            <column name="tag_id" type="varchar(255)"/>
+            <column name="tag_id" type="varchar(255)" afterColumn="product_id"/>
         </addColumn>
     </changeSet>
     <changeSet author="Authentication" id="1744951938765-7">
         <addColumn tableName="tbl_order_item">
-            <column name="tag_id" type="varchar(255)"/>
+            <column name="tag_id" type="varchar(255)" afterColumn="product_id"/>
         </addColumn>
     </changeSet>
     <changeSet author="Authentication" id="1744951938765-8">
