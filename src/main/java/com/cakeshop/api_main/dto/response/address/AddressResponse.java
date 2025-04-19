@@ -33,4 +33,7 @@ public class AddressResponse {
 
     @Schema(description = "isDefault")
     String isDefault;
+
+    @Schema(description = "fullAddress")
+    String fullAddress;
 }

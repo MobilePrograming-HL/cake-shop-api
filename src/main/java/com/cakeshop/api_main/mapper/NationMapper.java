@@ -27,6 +27,7 @@ public interface NationMapper {
     @Mapping(source = "name", target = "name")
     @Mapping(source = "kind", target = "kind")
     @Mapping(source = "parent.id", target = "parentId")
+    @Mapping(target = "key", expression = "java(getKey(nation))")
     @BeanMapping(ignoreByDefault = true)
     @Named("fromEntityToNationResponse")
     NationResponse fromEntityToNationResponse(Nation nation);
@@ -40,4 +41,11 @@ public interface NationMapper {
     @BeanMapping(ignoreByDefault = true)
     @Named("fromEntityToNationResponseAutoComplete")
     NationResponse fromEntityToNationResponseAutoComplete(Nation nation);
+
+    default String getKey(Nation nation) {
+        if (nation == null || nation.getName() == null || nation.getName().isEmpty()) {
+            return "#"; // fallback nếu không có chữ
+        }
+        return nation.getName().substring(0, 1).toUpperCase();
+    }
 }

@@ -21,7 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -44,8 +46,8 @@ public class NationController {
             @Valid @ModelAttribute NationCriteria nationCriteria,
             Pageable pageable
     ) {
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("name").ascending());
         Page<Nation> pageData = nationRepository.findAll(nationCriteria.getSpecification(), pageable);
-
         PaginationResponse<NationResponse> responseDto = new PaginationResponse<>(
                 nationMapper.fromEntitiesToNationResponseList(pageData.getContent()),
                 pageData.getTotalElements(),

@@ -19,4 +19,7 @@ public class NationResponse {
 
     @Schema(description = "parentId")
     String parentId;
+
+    @Schema(description = "key")
+    String key;
 }
