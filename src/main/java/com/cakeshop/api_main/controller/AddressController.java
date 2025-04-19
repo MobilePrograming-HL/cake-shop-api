@@ -181,6 +181,7 @@ public class AddressController {
         Address address = addressRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
         addressRepository.resetDefaultAddressesByCustomerId(customer.getId());
+        address.setIsDefault(true);
         addressRepository.save(address);
         return BaseResponseUtils.success(null, "Set default address successfully");
     }
