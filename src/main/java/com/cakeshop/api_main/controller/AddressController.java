@@ -144,7 +144,7 @@ public class AddressController {
         if (isInvalidParent(district, province) || isInvalidParent(commune, district)) {
             throw new BadRequestException(ErrorCode.NATION_PARENT_INVALID_ERROR);
         }
-        if (request.getIsDefault()) {
+        if (request.getIsDefault() && !address.getIsDefault()) {
             addressRepository.resetDefaultAddressesByCustomerId(customer.getId());
         }
         address.setProvince(province);
@@ -179,7 +179,9 @@ public class AddressController {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR));
         Address address = addressRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
-        addressRepository.resetDefaultAddressesByCustomerId(customer.getId());
+        if (!address.getIsDefault()) {
+            addressRepository.resetDefaultAddressesByCustomerId(customer.getId());
+        }
         address.setIsDefault(true);
         addressRepository.save(address);
         return BaseResponseUtils.success(null, "Set default address successfully");
