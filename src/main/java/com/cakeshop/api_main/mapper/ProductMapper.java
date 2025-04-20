@@ -60,6 +60,7 @@ public interface ProductMapper {
     @Mapping(source = "name", target = "name")
     @Mapping(source = "images", target = "image", qualifiedByName = "mapFirstImage")
     @Mapping(source = "price", target = "price")
+    @Mapping(source = "quantity", target = "quantity")
     @Mapping(source = "category", target = "category", qualifiedByName = "fromEntityToCategoryResponseAutoComplete")
     @Mapping(source = "tags", target = "tags", qualifiedByName = "fromEntityToTagResponse")
     @Mapping(source = "discount", target = "discount", qualifiedByName = "fromEntityToDiscountResponse")
