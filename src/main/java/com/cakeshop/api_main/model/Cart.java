@@ -32,7 +32,9 @@ public class Cart extends Abstract {
 
     public void addItem(Product product, Tag tag, int quantity) {
         Optional<CartItem> existingItem = cartItems.stream()
-                .filter(item -> item.getProduct().getId().equals(product.getId()))
+                .filter(item -> item.getProduct().getId().equals(product.getId()) &&
+                        item.getTag().getId().equals(tag.getId())
+                )
                 .findFirst();
         if (existingItem.isPresent()) {
             CartItem cartItem = existingItem.get();

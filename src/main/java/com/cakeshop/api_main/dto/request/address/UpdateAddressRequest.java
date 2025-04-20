@@ -30,7 +30,8 @@ public class UpdateAddressRequest {
     @NotBlank(message = "communeId can not be empty")
     String communeId;
 
-    @Schema(description = "details")
+    @Schema(description = "details", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "details cannot be empty")
     String details;
 
     @Schema(description = "isDefault", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)

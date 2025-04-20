@@ -144,6 +144,9 @@ public class AddressController {
         if (isInvalidParent(district, province) || isInvalidParent(commune, district)) {
             throw new BadRequestException(ErrorCode.NATION_PARENT_INVALID_ERROR);
         }
+        if (request.getIsDefault()) {
+            addressRepository.resetDefaultAddressesByCustomerId(customer.getId());
+        }
         address.setProvince(province);
         address.setDistrict(district);
         address.setCommune(commune);
@@ -151,12 +154,8 @@ public class AddressController {
         address.setIsDefault(request.getIsDefault());
         address.setFullName(request.getFullName());
         address.setPhoneNumber(request.getPhoneNumber());
-
-        if (address.getIsDefault()) {
-            addressRepository.resetDefaultAddressesByCustomerId(customer.getId());
-        }
         addressRepository.save(address);
-        return BaseResponseUtils.success(null, "Create address successfully");
+        return BaseResponseUtils.success(null, "Update address successfully");
     }
 
     @DeleteMapping(value = "/delete/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
