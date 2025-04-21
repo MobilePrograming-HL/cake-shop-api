@@ -28,14 +28,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @RestController
@@ -67,16 +70,22 @@ public class ProductController {
         Map<String, Long> soldStatsMap = orderItemRepository
                 .findSoldQuantitiesByProductIds(productIds, BaseConstant.ORDER_STATUS_DELIVERED).stream()
                 .collect(Collectors.toMap(ProductSoldResponse::getProductId, ProductSoldResponse::getTotalSold));
-        List<ProductResponse> productResponses = products.stream()
+        Stream<ProductResponse> productResponses = products.stream()
                 .map(product -> {
                     ProductResponse response = productMapper.fromEntityToProductResponse(product);
                     response.setImage(product.getImages().get(0));
                     response.setTotalSold(soldStatsMap.getOrDefault(product.getId(), 0L));
                     return response;
-                })
-                .toList();
+                });
+        if (StringUtils.hasText(criteria.getSoldSort())) {
+            if (BaseConstant.SORT_DESC.equalsIgnoreCase(criteria.getSoldSort())) {
+                productResponses = productResponses.sorted(Comparator.comparingLong(ProductResponse::getTotalSold).reversed());
+            } else {
+                productResponses = productResponses.sorted(Comparator.comparingLong(ProductResponse::getTotalSold));
+            }
+        }
         PaginationResponse<ProductResponse> responseDto = new PaginationResponse<>(
-                productResponses,
+                productResponses.toList(),
                 pageData.getTotalElements(),
                 pageData.getTotalPages()
         );

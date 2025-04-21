@@ -32,7 +32,7 @@ public class AddressResponse {
     String phoneNumber;
 
     @Schema(description = "isDefault")
-    String isDefault;
+    Boolean isDefault;
 
     @Schema(description = "fullAddress")
     String fullAddress;
