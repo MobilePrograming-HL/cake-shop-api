@@ -99,7 +99,7 @@ public class ProductController {
         if (!product.getDiscount().isActive()) {
             product.setDiscount(null);
         }
-        ProductResponse productResponse = productMapper.fromEntityToProductResponse(product);
+        ProductResponse productResponse = productMapper.fromEntityToProductResponseDetails(product);
 
         // sold quantity stats
         ProductSoldResponse productSoldResponse = orderItemRepository.findSoldQuantityByProductId(id, BaseConstant.ORDER_STATUS_DELIVERED);
