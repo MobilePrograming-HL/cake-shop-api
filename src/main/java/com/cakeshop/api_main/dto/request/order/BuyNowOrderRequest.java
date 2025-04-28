@@ -1,25 +1,32 @@
 package com.cakeshop.api_main.dto.request.order;
 
-import com.cakeshop.api_main.dto.request.orderItem.CreateOrderItemRequest;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
-
 @Getter
 @Setter
 @Schema(description = "Create order Form")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreateOrderRequest {
-    @Schema(description = "cartItemIds", example = "[1, 2]", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "shippingFee can not be null")
-    List<String> cartItemIds;
+public class BuyNowOrderRequest {
+    @Schema(description = "productId", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "productId can not be null")
+    String productId;
+
+    @Schema(description = "tagId", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "tagId can not be null")
+    String tagId;
+
+    @Schema(description = "quantity", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "quantity can not be null")
+    @Min(value = 1, message = "Quantity must be greater than 0")
+    int quantity;
 
     @Schema(description = "shippingFee", example = "30000", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "shippingFee can not be null")

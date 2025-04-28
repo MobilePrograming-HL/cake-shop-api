@@ -1,6 +1,7 @@
 package com.cakeshop.api_main.controller;
 
 import com.cakeshop.api_main.constant.BaseConstant;
+import com.cakeshop.api_main.dto.request.order.BuyNowOrderRequest;
 import com.cakeshop.api_main.dto.request.order.CreateOrderRequest;
 import com.cakeshop.api_main.dto.request.order.UpdateOrderStatusRequest;
 import com.cakeshop.api_main.dto.request.orderItem.CreateOrderItemRequest;
@@ -47,6 +48,7 @@ public class OrderController {
     IOrderRepository orderRepository;
     ITagRepository tagRepository;
     IAddressRepository addressRepository;
+    ICartItemRepository cartItemRepository;
 
     OrderMapper orderMapper;
     private final OrderStatusMapper orderStatusMapper;
@@ -87,6 +89,25 @@ public class OrderController {
         return BaseResponseUtils.success(orderStatusMapper.fromEntitiesToOrderStatusResponseList(orderStatuses), "Get order status list successfully");
     }
 
+    @PostMapping(value = "/buy-now", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<Void> buyNow(@Valid @RequestBody BuyNowOrderRequest request) {
+        String username = SecurityUtil.getCurrentUsername();
+        Customer customer = customerRepository.findByAccountUsername(username)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR));
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND_ERROR));
+        Tag tag = tagRepository.findById(request.getTagId())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.TAG_NOT_FOUND_ERROR));
+        Address address = addressRepository.findById(request.getAddressId())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
+        List<OrderItemDetails> orderItemDetailsList = new ArrayList<>();
+        orderItemDetailsList.add(new OrderItemDetails(product, tag, request.getQuantity()));
+        Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote());
+        order.makeOrder(orderItemDetailsList);
+        orderRepository.save(order);
+        return BaseResponseUtils.success(null, "Create order successfully");
+    }
+
     @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<Void> create(@Valid @RequestBody CreateOrderRequest request) {
         String username = SecurityUtil.getCurrentUsername();
@@ -95,58 +116,17 @@ public class OrderController {
         Address address = addressRepository.findById(request.getAddressId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
 
-        List<String> productIds = request.getOrderItems().stream()
-                .map(CreateOrderItemRequest::getProductId)
-                .collect(Collectors.toList());
-        List<Product> products = productRepository.findAllById(productIds);
-        if (products.size() != productIds.size()) {
-            List<String> foundIds = products.stream()
-                    .map(Product::getId)
-                    .toList();
-            List<String> missingIds = productIds.stream()
-                    .filter(id -> !foundIds.contains(id))
-                    .toList();
-            if (!missingIds.isEmpty()) {
-                throw new NotFoundException("Products not found: " + missingIds, ErrorCode.PRODUCT_NOT_FOUND_ERROR);
-            }
+        List<CartItem> cartItems = cartItemRepository.findAllByIdsAndUsername(request.getCartItemIds(), username);
+        if (!cartItems.isEmpty()) {
+            List<OrderItemDetails> orderItemDetailsList = cartItems.stream()
+                    .map(
+                            item -> new OrderItemDetails(item.getProduct(), item.getTag(), item.getQuantity())
+                    ).toList();
+            Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote());
+            order.makeOrder(orderItemDetailsList);
+            orderRepository.save(order);
+            cartItemRepository.deleteAll(cartItems);
         }
-
-        List<String> tagIds = request.getOrderItems().stream()
-                .map(CreateOrderItemRequest::getTagId)
-                .collect(Collectors.toList());
-        List<Tag> tags = tagRepository.findAllById(tagIds);
-        if (tags.size() != tagIds.size()) {
-            List<String> foundIds = tags.stream()
-                    .map(Tag::getId)
-                    .toList();
-            List<String> missingIds = tagIds.stream()
-                    .filter(id -> !foundIds.contains(id))
-                    .toList();
-            if (!missingIds.isEmpty()) {
-                throw new NotFoundException("Tags not found: " + missingIds, ErrorCode.TAG_NOT_FOUND_ERROR);
-            }
-        }
-
-        List<OrderItemDetails> orderItemDetailsList = new ArrayList<>();
-        for (CreateOrderItemRequest item : request.getOrderItems()) {
-            Product product = products.stream()
-                    .filter(p -> p.getId().equals(item.getProductId()))
-                    .findFirst()
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND_ERROR));
-            if (product.getDiscount() != null && !product.getDiscount().isActive()) {
-                productRepository.updateDiscount(null);
-            }
-            Tag tag = tags.stream()
-                    .filter(t -> t.getId().equals(item.getTagId()))
-                    .findFirst()
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.TAG_NOT_FOUND_ERROR));
-            orderItemDetailsList.add(new OrderItemDetails(product, tag, item.getQuantity()));
-        }
-
-        Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote());
-        order.makeOrder(orderItemDetailsList);
-        orderRepository.save(order);
-
         return BaseResponseUtils.success(null, "Create order successfully");
     }
 

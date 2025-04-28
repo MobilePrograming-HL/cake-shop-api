@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -181,29 +182,30 @@ public class ProductController {
     @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<PaginationResponse<ProductResponse>> search(
             @Valid @ModelAttribute ProductCriteria criteria,
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            Pageable pageable,
+            @RequestParam String keyword
     ) {
-        int offset = page * size;
         String keywordUnaccent = "+" + ConvertUtils.stripAccents(keyword.trim())
                 .replaceAll("\\s+", " ")
                 .trim()
                 .replace(" ", " +");
-        List<Product> results = productRepository.searchUnaccented(keywordUnaccent, BaseConstant.PRODUCT_STATUS_SELLING, size, offset);
-        long totalElements = productRepository.countSearchByNameFullText(
-                keywordUnaccent,
-                BaseConstant.PRODUCT_STATUS_SELLING
-        );
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-        List<ProductResponse> response = results.stream()
-                .map(productMapper::fromEntityToProductResponse)
+
+        Page<Product> pageData = productRepository.searchUnaccented(keywordUnaccent, BaseConstant.PRODUCT_STATUS_SELLING, pageable);
+
+        List<ProductResponse> productResponses = pageData.getContent().stream()
+                .map(product -> {
+                    ProductResponse response = productMapper.fromEntityToProductResponse(product);
+                    if (product.getImages() != null && !product.getImages().isEmpty()) {
+                        response.setImage(product.getImages().get(0));
+                    }
+                    return response;
+                })
                 .toList();
 
         PaginationResponse<ProductResponse> responseDto = new PaginationResponse<>(
-                productMapper.fromEntitiesToProductResponseList(results),
-                totalElements,
-                totalPages
+                productResponses,
+                pageData.getTotalElements(),
+                pageData.getTotalPages()
         );
 
         return BaseResponseUtils.success(responseDto, "Search success");
