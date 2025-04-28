@@ -8,9 +8,9 @@ server:
 
 spring:
   datasource:
-    url: ${DBMS_URL:jdbc:mysql://localhost:3306/db_cake_shop}
-    username: ${DBMS_USERNAME:root}
-    password: ${DBMS_PASSWORD:123456}
+    url: ${DATASOURCE_URL:jdbc:mysql://localhost:4000/db_cake_shop}
+    username: ${DATASOURCE_USERNAME:root}
+    password: ${DATASOURCE_PASSWORD:root}
     driverClassName: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 5
