@@ -25,4 +25,28 @@ public interface IProductRepository extends JpaRepository<Product, String>, JpaS
     @Modifying
     @Query("UPDATE Product p SET p.discount = :discount WHERE p.category.id = :categoryId")
     void updateDiscount(@Param("discount") Discount discount, @Param("categoryId") String categoryId);
+
+    @Query(value = """
+                SELECT * FROM tbl_product 
+                WHERE MATCH(name_unaccent) AGAINST(:keyword IN BOOLEAN MODE)
+                AND status = :status
+                ORDER BY MATCH(name_unaccent) AGAINST(:keyword IN BOOLEAN MODE) DESC
+                LIMIT :limit OFFSET :offset
+            """, nativeQuery = true)
+    List<Product> searchUnaccented(
+            @Param("keyword") String keyword,
+            @Param("status") Integer status,
+            @Param("limit") int limit,
+            @Param("offset") int offset
+    );
+
+    @Query(value = """
+                SELECT COUNT(*) FROM tbl_product 
+                WHERE MATCH(name_unaccent) AGAINST(:keyword IN BOOLEAN MODE)
+                AND status = :status
+            """, nativeQuery = true)
+    long countSearchByNameFullText(
+            @Param("keyword") String keyword,
+            @Param("status") Integer status
+    );
 }

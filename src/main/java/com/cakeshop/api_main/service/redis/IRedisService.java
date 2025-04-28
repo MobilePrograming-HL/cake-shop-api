@@ -7,4 +7,6 @@ public interface IRedisService {
     <T> void setObject(String key, T value, Integer timeout);
 
     void deleteObject(String key);
+
+    boolean hasKey(String key);
 }

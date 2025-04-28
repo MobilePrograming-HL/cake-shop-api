@@ -14,7 +14,7 @@ public class StringBuilderUtils {
         return "Hello " + username + ",\n\n"
                 + "We noticed that you requested a new OTP to activate your account. Please find your new OTP code below:\n\n"
                 + "🔒 Your OTP Code: " + otpCode + "\n\n"
-                + "This code is valid for the next 5 minutes. Please do not share this code with anyone.\n\n"
+                + "This code is valid for the next 1 minutes. Please do not share this code with anyone.\n\n"
                 + "If you did not request this, please ignore this email.\n\n"
                 + "Best regards,\n"
                 + "The CakeShop Team";

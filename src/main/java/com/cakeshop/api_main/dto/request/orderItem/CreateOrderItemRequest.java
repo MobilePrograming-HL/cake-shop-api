@@ -28,7 +28,4 @@ public class CreateOrderItemRequest {
     @NotNull(message = "quantity can not be null")
     @Min(value = 1, message = "Quantity must be greater than 0")
     int quantity;
-
-    @Schema(description = "note", example = "note")
-    String note;
 }
