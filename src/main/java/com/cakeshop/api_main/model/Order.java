@@ -63,9 +63,12 @@ public class Order extends Abstract {
     @Column(name = "note", columnDefinition = "TEXT")
     String note;
 
-    public Order(Customer customer, Integer shippingFee) {
+    public Order(Customer customer, Integer shippingFee, Integer paymentMethod, Address address, String note) {
         this.customer = customer;
         this.shippingFee = shippingFee;
+        this.paymentMethod = paymentMethod;
+        this.address = address;
+        this.note = note;
     }
 
     public void makeOrder(List<OrderItemDetails> orderItemList) {
@@ -84,7 +87,13 @@ public class Order extends Abstract {
     }
 
     private void initializeOrderStatus() {
-        OrderStatus orderStatus = new OrderStatus(BaseConstant.ORDER_STATUS_PENDING, new Date(), this);
+        Integer status;
+        if (Objects.equals(paymentMethod, BaseConstant.PAYMENT_METHOD_CASH)) {
+            status = BaseConstant.ORDER_STATUS_PROCESSING;
+        } else {
+            status = BaseConstant.ORDER_STATUS_PENDING;
+        }
+        OrderStatus orderStatus = new OrderStatus(status, new Date(), this);
         this.currentStatus = orderStatus;
         this.orderStatuses.add(orderStatus);
     }

@@ -21,7 +21,9 @@ import com.cakeshop.api_main.repository.internal.ICustomerRepository;
 import com.cakeshop.api_main.repository.internal.IGroupRepository;
 import com.cakeshop.api_main.repository.internal.ITokenValidationRepository;
 import com.cakeshop.api_main.service.email.IEmailService;
+import com.cakeshop.api_main.service.redis.IRedisService;
 import com.cakeshop.api_main.utils.ObjectGenerationUtils;
+import com.cakeshop.api_main.utils.RedisUtils;
 import com.cakeshop.api_main.utils.StringBuilderUtils;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
@@ -48,11 +50,15 @@ import java.util.Objects;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationServiceImpl implements IAuthenticationService {
 
+    private static final int MAX_RESEND_ATTEMPTS = 3;
+    private static final int RESEND_OTP_TIMEOUT_SECONDS = 300;
+
     IAccountRepository accountRepository;
     ITokenValidationRepository tokenValidationRepository;
     IGroupRepository groupRepository;
     ICustomerRepository customerRepository;
     IEmailService emailService;
+    IRedisService redisService;
     PasswordEncoder passwordEncoder;
     ObjectGenerationUtils objectGenerationUtils;
 
@@ -259,28 +265,40 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Override
     public String resendOtpCode(ResendOtpCodeRequest request) {
-
         Account existedAccount = accountRepository.findByEmail(request.getEmail());
         if (existedAccount == null) {
             log.info("Account not found");
             throw new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR);
         }
-
-        String message = "";
-
-        if (!existedAccount.getIsActive()) {
-            String newOtpCode = objectGenerationUtils.generateOtp();
-            emailService.saveOtp(existedAccount.getEmail(), newOtpCode);
-
-            String subject = StringBuilderUtils.subjectResendEmail;
-            String body = StringBuilderUtils.buildBodyResendEmail(existedAccount.getUsername(), newOtpCode);
-
-            emailService.sendEmail(existedAccount.getEmail(), subject, body);
-            message = "Resend email successful";
-        } else {
-            message = "User is already active";
+        // account đã active
+        if (existedAccount.getIsActive()) {
+            return "User is already active";
         }
-        return message;
+        // check otp tồn tại
+        boolean otpExists = redisService.hasKey(RedisUtils.getRedisKeyForConfirmEmail(existedAccount.getEmail()));
+        if (!otpExists) {
+            accountRepository.delete(existedAccount);
+            log.info("OTP expired for email: {}", existedAccount.getEmail());
+            return "OTP expired. Please register again.";
+        }
+        String resendKey = RedisUtils.getRedisKeyForResendOtp(existedAccount.getEmail());
+        Integer resendCount = redisService.getObject(resendKey, Integer.class);
+        // nếu đã qua 3 lần resend
+        if (resendCount != null && resendCount >= MAX_RESEND_ATTEMPTS) {
+            accountRepository.delete(existedAccount);
+            log.info("Resend OTP limit exceeded for email: {}", existedAccount.getEmail());
+            return "You have exceeded the maximum number of OTP resend attempts. Please register again.";
+        }
+        String newOtpCode = objectGenerationUtils.generateOtp();
+        emailService.saveOtp(existedAccount.getEmail(), newOtpCode);
+        int newResendCount = resendCount == null ? 1 : resendCount + 1;
+        redisService.setObject(resendKey, newResendCount, RESEND_OTP_TIMEOUT_SECONDS);
+
+        String subject = StringBuilderUtils.subjectResendEmail;
+        String body = StringBuilderUtils.buildBodyResendEmail(existedAccount.getUsername(), newOtpCode);
+        emailService.sendEmail(existedAccount.getEmail(), subject, body);
+
+        return "Resend email successful";
     }
 
     @Override

@@ -16,10 +16,7 @@ import com.cakeshop.api_main.mapper.OrderMapper;
 import com.cakeshop.api_main.mapper.OrderStatusMapper;
 import com.cakeshop.api_main.model.*;
 import com.cakeshop.api_main.model.criteria.OrderCriteria;
-import com.cakeshop.api_main.repository.internal.ICustomerRepository;
-import com.cakeshop.api_main.repository.internal.IOrderRepository;
-import com.cakeshop.api_main.repository.internal.IProductRepository;
-import com.cakeshop.api_main.repository.internal.ITagRepository;
+import com.cakeshop.api_main.repository.internal.*;
 import com.cakeshop.api_main.utils.BaseResponseUtils;
 import com.cakeshop.api_main.utils.SecurityUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -49,6 +46,7 @@ public class OrderController {
     IProductRepository productRepository;
     IOrderRepository orderRepository;
     ITagRepository tagRepository;
+    IAddressRepository addressRepository;
 
     OrderMapper orderMapper;
     private final OrderStatusMapper orderStatusMapper;
@@ -94,6 +92,8 @@ public class OrderController {
         String username = SecurityUtil.getCurrentUsername();
         Customer customer = customerRepository.findByAccountUsername(username)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR));
+        Address address = addressRepository.findById(request.getAddressId())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
 
         List<String> productIds = request.getOrderItems().stream()
                 .map(CreateOrderItemRequest::getProductId)
@@ -143,7 +143,7 @@ public class OrderController {
             orderItemDetailsList.add(new OrderItemDetails(product, tag, item.getQuantity()));
         }
 
-        Order order = new Order(customer, request.getShippingFee());
+        Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote());
         order.makeOrder(orderItemDetailsList);
         orderRepository.save(order);
 

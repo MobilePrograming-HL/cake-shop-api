@@ -21,6 +21,9 @@ public class Product extends Abstract {
     @Column(name = "name")
     String name;
 
+    @Column(name = "name_unaccent")
+    String nameUnaccent;
+
     @Column(name = "price")
     Double price;
 
