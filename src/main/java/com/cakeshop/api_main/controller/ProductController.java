@@ -18,6 +18,7 @@ import com.cakeshop.api_main.model.Tag;
 import com.cakeshop.api_main.model.criteria.ProductCriteria;
 import com.cakeshop.api_main.repository.internal.*;
 import com.cakeshop.api_main.utils.BaseResponseUtils;
+import com.cakeshop.api_main.utils.ConvertUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -33,10 +34,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -99,7 +97,7 @@ public class ProductController {
         if (!product.getDiscount().isActive()) {
             product.setDiscount(null);
         }
-        ProductResponse productResponse = productMapper.fromEntityToProductResponse(product);
+        ProductResponse productResponse = productMapper.fromEntityToProductResponseDetails(product);
 
         // sold quantity stats
         ProductSoldResponse productSoldResponse = orderItemRepository.findSoldQuantityByProductId(id, BaseConstant.ORDER_STATUS_DELIVERED);
@@ -130,6 +128,7 @@ public class ProductController {
         product.setTags(tags);
         product.setStatus(BaseConstant.PRODUCT_STATUS_SELLING);
         product.setImages(request.getImages());
+        product.setNameUnaccent(ConvertUtils.stripAccents(product.getName()));
 
         productRepository.save(product);
 
@@ -143,7 +142,7 @@ public class ProductController {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND_ERROR));
         // Update name
         if (!product.getName().equals(request.getName())) {
-            if (tagRepository.existsByName(request.getName())) {
+            if (productRepository.existsByName(request.getName())) {
                 throw new BadRequestException(ErrorCode.PRODUCT_NAME_EXISTED_ERROR);
             }
         }
@@ -158,6 +157,7 @@ public class ProductController {
             product.setTags(tags);
         }
         productMapper.updateFromUpdateProductRequest(product, request);
+        product.setNameUnaccent(ConvertUtils.stripAccents(product.getName()));
         product.setImages(request.getImages());
         productRepository.save(product);
         return BaseResponseUtils.success(null, "Update product successfully");
@@ -176,6 +176,37 @@ public class ProductController {
         // Delete PRODUCT
         productRepository.deleteById(id);
         return BaseResponseUtils.success(null, "Delete product successfully");
+    }
+
+    @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<PaginationResponse<ProductResponse>> search(
+            @Valid @ModelAttribute ProductCriteria criteria,
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        int offset = page * size;
+        String keywordUnaccent = "+" + ConvertUtils.stripAccents(keyword.trim())
+                .replaceAll("\\s+", " ")
+                .trim()
+                .replace(" ", " +");
+        List<Product> results = productRepository.searchUnaccented(keywordUnaccent, BaseConstant.PRODUCT_STATUS_SELLING, size, offset);
+        long totalElements = productRepository.countSearchByNameFullText(
+                keywordUnaccent,
+                BaseConstant.PRODUCT_STATUS_SELLING
+        );
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        List<ProductResponse> response = results.stream()
+                .map(productMapper::fromEntityToProductResponse)
+                .toList();
+
+        PaginationResponse<ProductResponse> responseDto = new PaginationResponse<>(
+                productMapper.fromEntitiesToProductResponseList(results),
+                totalElements,
+                totalPages
+        );
+
+        return BaseResponseUtils.success(responseDto, "Search success");
     }
 
     private static ReviewStatsResponse getReviewStatsResponse(String id, List<Object[]> result) {

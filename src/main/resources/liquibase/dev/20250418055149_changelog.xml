@@ -28,4 +28,15 @@
             <column name="phone_number" type="varchar(255)" afterColumn="dob"/>
         </addColumn>
     </changeSet>
+    <changeSet id="add-name-unaccent" author="you">
+        <addColumn tableName="tbl_product">
+            <column name="name_unaccent" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-fulltext-name-unaccent" author="you">
+        <sql>
+            ALTER TABLE tbl_product ADD FULLTEXT INDEX idx_fulltext_name_unaccent (name_unaccent);
+        </sql>
+    </changeSet>
 </databaseChangeLog>

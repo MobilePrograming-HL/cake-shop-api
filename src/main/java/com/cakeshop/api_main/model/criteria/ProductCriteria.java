@@ -7,6 +7,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,6 +25,10 @@ public class ProductCriteria extends BaseCriteria<Product> {
     private String priceSort;
     private String soldSort;
     private String createdSort;
+    @Min(value = 0)
+    private Double fromPrice;
+    @Min(value = 0)
+    private Double toPrice;
 
     @Override
     public Specification<Product> getSpecification() {
@@ -38,6 +43,12 @@ public class ProductCriteria extends BaseCriteria<Product> {
             }
             if (StringUtils.hasText(getCategoryId())) {
                 predicates.add(cb.equal(root.get("category").get("id"), getCategoryId()));
+            }
+            if (getFromPrice() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), getFromPrice()));
+            }
+            if (getToPrice() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("price"), getToPrice()));
             }
             if (StringUtils.hasText(getPriceSort())) {
                 if (getPriceSort().equalsIgnoreCase(BaseConstant.SORT_ASC)) {
