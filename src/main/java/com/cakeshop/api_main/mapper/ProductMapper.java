@@ -39,7 +39,7 @@ public interface ProductMapper {
     @Mapping(source = "images", target = "image", qualifiedByName = "mapFirstImage")
     @BeanMapping(ignoreByDefault = true)
     @Named("fromEntityToProductResponse")
-    ProductResponse fromEntityToProductResponse(Product product);
+    ProductResponse fromEntityToProductResponse(Product product); //ok
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
@@ -63,7 +63,6 @@ public interface ProductMapper {
     @Mapping(source = "price", target = "price")
     @Mapping(source = "quantity", target = "quantity")
     @Mapping(source = "category", target = "category", qualifiedByName = "fromEntityToCategoryResponseAutoComplete")
-    @Mapping(source = "tags", target = "tags", qualifiedByName = "fromEntityToTagResponse")
     @Mapping(source = "discount", target = "discount", qualifiedByName = "fromEntityToDiscountResponse")
     @Mapping(source = "status", target = "status")
     @BeanMapping(ignoreByDefault = true)
