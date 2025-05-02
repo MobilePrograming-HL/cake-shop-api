@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,7 +34,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,11 +58,21 @@ public class ProductController {
 
     @GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<PaginationResponse<ProductResponse>> list(
+            @RequestParam(required = false) String keyword,
             @Valid @ModelAttribute ProductCriteria criteria,
             Pageable pageable
     ) {
         criteria.setStatus(BaseConstant.PRODUCT_STATUS_SELLING);
-        Page<Product> pageData = productRepository.findAll(criteria.getSpecification(), pageable);
+        Page<Product> pageData;
+        if (keyword == null) {
+            pageData = productRepository.findAll(criteria.getSpecification(), pageable);
+        } else {
+            String keywordUnaccent = "+" + ConvertUtils.stripAccents(keyword.trim())
+                    .replaceAll("\\s+", " ")
+                    .trim()
+                    .replace(" ", " +");
+            pageData = productRepository.searchUnaccented(keywordUnaccent, BaseConstant.PRODUCT_STATUS_SELLING, pageable);
+        }
         List<Product> products = pageData.getContent();
         List<String> productIds = products.stream()
                 .map(Product::getId)
@@ -179,37 +191,47 @@ public class ProductController {
         return BaseResponseUtils.success(null, "Delete product successfully");
     }
 
-    @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse<PaginationResponse<ProductResponse>> search(
-            @Valid @ModelAttribute ProductCriteria criteria,
-            Pageable pageable,
-            @RequestParam String keyword
-    ) {
-        String keywordUnaccent = "+" + ConvertUtils.stripAccents(keyword.trim())
-                .replaceAll("\\s+", " ")
-                .trim()
-                .replace(" ", " +");
-
-        Page<Product> pageData = productRepository.searchUnaccented(keywordUnaccent, BaseConstant.PRODUCT_STATUS_SELLING, pageable);
-
-        List<ProductResponse> productResponses = pageData.getContent().stream()
-                .map(product -> {
-                    ProductResponse response = productMapper.fromEntityToProductResponse(product);
-                    if (product.getImages() != null && !product.getImages().isEmpty()) {
-                        response.setImage(product.getImages().get(0));
-                    }
-                    return response;
-                })
-                .toList();
-
-        PaginationResponse<ProductResponse> responseDto = new PaginationResponse<>(
-                productResponses,
-                pageData.getTotalElements(),
-                pageData.getTotalPages()
-        );
-
-        return BaseResponseUtils.success(responseDto, "Search success");
-    }
+//    @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public BaseResponse<PaginationResponse<ProductResponse>> search(
+//            @Valid @ModelAttribute ProductCriteria criteria,
+//            Pageable pageable,
+//            @RequestParam String keyword
+//    ) {
+//        BoolQueryBuilder query = QueryBuilders.boolQuery();
+//
+//        if (StringUtils.hasText(criteria.getName())) {
+//            query.must(QueryBuilders.matchQuery("nameUnaccent", ConvertUtils.stripAccents(criteria.getName())));
+//        }
+//        if (criteria.getCategoryId() != null) {
+//            query.filter(QueryBuilders.termQuery("categoryId", criteria.getCategoryId()));
+//        }
+//        if (criteria.getFromPrice() != null || criteria.getToPrice() != null) {
+//            RangeQueryBuilder priceRange = QueryBuilders.rangeQuery("price");
+//            if (criteria.getFromPrice() != null) priceRange.gte(criteria.getFromPrice());
+//            if (criteria.getToPrice() != null) priceRange.lte(criteria.getToPrice());
+//            query.filter(priceRange);
+//        }
+//
+//        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+//                .withQuery(query)
+//                .withPageable(pageable)
+//                .build();
+//
+//        SearchHits<ProductIndex> hits = elasticsearchRestTemplate.search(searchQuery, ProductIndex.class);
+//        List<ProductIndex> products = hits.getSearchHits().stream()
+//                .map(SearchHit::getContent)
+//                .toList();
+//
+//        return new PageImpl<>(products, pageable, hits.getTotalHits());
+//
+//        PaginationResponse<ProductResponse> responseDto = new PaginationResponse<>(
+//                productResponses,
+//                pageData.getTotalElements(),
+//                pageData.getTotalPages()
+//        );
+//
+//        return BaseResponseUtils.success(responseDto, "Search success");
+//    }
 
     private static ReviewStatsResponse getReviewStatsResponse(String id, List<Object[]> result) {
         Map<Integer, Long> reviewMap = new HashMap<>();

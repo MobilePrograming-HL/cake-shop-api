@@ -55,6 +55,8 @@ spring:
       port: ${REDISPORT:6379}
       password: ${REDISPASSWORD}
       url: ${REDIS_URL}
+  elasticsearch:
+    uris: http://localhost:9200
 
 open:
   api:
@@ -84,3 +86,11 @@ payment:
     version: ${VERSION}
     command: ${COMMAND}
     orderType: ${ORDER_TYPE}
+  momo:
+    partner-code: MOMO
+    redirect-url: http://localhost:8080/api/v1/order/ipn-handler
+    ipn-url: http://localhost:8080/api/v1/order/ipn-handler
+    access-key: F8BBA842ECF85
+    secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
+    request-type: payWithMethod
+    end-point: https://test-payment.momo.vn/v2/gateway/api

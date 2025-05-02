@@ -71,8 +71,8 @@ public class Order extends Abstract {
         this.note = note;
     }
 
-    public void makeOrder(List<OrderItemDetails> orderItemList) {
-        initializeOrderStatus();
+    public void makeOrder(List<OrderItemDetails> orderItemList, OrderStatus status) {
+        initializeOrderStatus(status);
 
         initializeOrderItems(orderItemList);
 
@@ -86,16 +86,9 @@ public class Order extends Abstract {
         this.totalAmount = itemsTotal + (shippingFee != null ? shippingFee : 0);
     }
 
-    private void initializeOrderStatus() {
-        Integer status;
-        if (Objects.equals(paymentMethod, BaseConstant.PAYMENT_METHOD_CASH)) {
-            status = BaseConstant.ORDER_STATUS_PROCESSING;
-        } else {
-            status = BaseConstant.ORDER_STATUS_PENDING;
-        }
-        OrderStatus orderStatus = new OrderStatus(status, new Date(), this);
-        this.currentStatus = orderStatus;
-        this.orderStatuses.add(orderStatus);
+    private void initializeOrderStatus(OrderStatus status) {
+        this.currentStatus = status;
+        this.orderStatuses.add(status);
     }
 
     private void initializeOrderItems(List<OrderItemDetails> orderItemList) {
