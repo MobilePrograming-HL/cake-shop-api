@@ -1,5 +1,12 @@
 package com.cakeshop.api_main.controller;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
 import com.cakeshop.api_main.constant.BaseConstant;
 import com.cakeshop.api_main.dto.request.product.CreateProductRequest;
 import com.cakeshop.api_main.dto.request.product.UpdateProductRequest;
@@ -11,12 +18,16 @@ import com.cakeshop.api_main.dto.response.review.ReviewStatsResponse;
 import com.cakeshop.api_main.exception.BadRequestException;
 import com.cakeshop.api_main.exception.ErrorCode;
 import com.cakeshop.api_main.exception.NotFoundException;
+import com.cakeshop.api_main.mapper.ProductIndexMapper;
 import com.cakeshop.api_main.mapper.ProductMapper;
 import com.cakeshop.api_main.model.Category;
 import com.cakeshop.api_main.model.Product;
 import com.cakeshop.api_main.model.Tag;
 import com.cakeshop.api_main.model.criteria.ProductCriteria;
+import com.cakeshop.api_main.model.elastic.query.ProductSearchQuery;
+import com.cakeshop.api_main.model.index.ProductIndex;
 import com.cakeshop.api_main.repository.internal.*;
+import com.cakeshop.api_main.service.elastic.ProductSyncService;
 import com.cakeshop.api_main.utils.BaseResponseUtils;
 import com.cakeshop.api_main.utils.ConvertUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -32,12 +43,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,6 +64,9 @@ public class ProductController {
     IReviewRepository reviewRepository;
 
     ProductMapper productMapper;
+
+    ProductSearchQuery productSearchQuery;
+    ProductSyncService productSyncService;
 
     @GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<PaginationResponse<ProductResponse>> list(
@@ -84,7 +96,6 @@ public class ProductController {
         Stream<ProductResponse> productResponses = products.stream()
                 .map(product -> {
                     ProductResponse response = productMapper.fromEntityToProductResponse(product);
-                    response.setImage(product.getImages().get(0));
                     response.setTotalSold(soldStatsMap.getOrDefault(product.getId(), 0L));
                     return response;
                 });
@@ -191,47 +202,40 @@ public class ProductController {
         return BaseResponseUtils.success(null, "Delete product successfully");
     }
 
-//    @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public BaseResponse<PaginationResponse<ProductResponse>> search(
-//            @Valid @ModelAttribute ProductCriteria criteria,
-//            Pageable pageable,
-//            @RequestParam String keyword
-//    ) {
-//        BoolQueryBuilder query = QueryBuilders.boolQuery();
-//
-//        if (StringUtils.hasText(criteria.getName())) {
-//            query.must(QueryBuilders.matchQuery("nameUnaccent", ConvertUtils.stripAccents(criteria.getName())));
-//        }
-//        if (criteria.getCategoryId() != null) {
-//            query.filter(QueryBuilders.termQuery("categoryId", criteria.getCategoryId()));
-//        }
-//        if (criteria.getFromPrice() != null || criteria.getToPrice() != null) {
-//            RangeQueryBuilder priceRange = QueryBuilders.rangeQuery("price");
-//            if (criteria.getFromPrice() != null) priceRange.gte(criteria.getFromPrice());
-//            if (criteria.getToPrice() != null) priceRange.lte(criteria.getToPrice());
-//            query.filter(priceRange);
-//        }
-//
-//        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
-//                .withQuery(query)
-//                .withPageable(pageable)
-//                .build();
-//
-//        SearchHits<ProductIndex> hits = elasticsearchRestTemplate.search(searchQuery, ProductIndex.class);
-//        List<ProductIndex> products = hits.getSearchHits().stream()
-//                .map(SearchHit::getContent)
-//                .toList();
-//
-//        return new PageImpl<>(products, pageable, hits.getTotalHits());
-//
-//        PaginationResponse<ProductResponse> responseDto = new PaginationResponse<>(
-//                productResponses,
-//                pageData.getTotalElements(),
-//                pageData.getTotalPages()
-//        );
-//
-//        return BaseResponseUtils.success(responseDto, "Search success");
-//    }
+    @GetMapping("/search")
+    public BaseResponse<PaginationResponse<ProductResponse>> searchProducts(
+            @ModelAttribute ProductCriteria criteria,
+            Pageable pageable
+    ) throws IOException {
+        SearchResponse<ProductIndex> response = productSearchQuery.search(criteria, pageable);
+
+        List<ProductIndex> indexes = response.hits().hits().stream()
+                .map(hit -> hit.source()) // lấy ra document gốc
+                .filter(Objects::nonNull)
+                .toList();
+
+        List<ProductResponse> responses = indexes.stream()
+                .map(ProductIndexMapper::toProductResponse)
+                .toList();
+
+        long total = response.hits().total() != null
+                ? response.hits().total().value()
+                : responses.size();
+
+        PaginationResponse<ProductResponse> result = new PaginationResponse<>(
+                responses,
+                total,
+                (int) Math.ceil((double) total / pageable.getPageSize())
+        );
+
+        return BaseResponseUtils.success(result, "Search thành công");
+    }
+
+    @PostMapping("/sync-to-es")
+    public BaseResponse<Void> syncToElastic() throws IOException {
+        productSyncService.syncAllProducts();
+        return BaseResponseUtils.success(null, "Đã đồng bộ toàn bộ sản phẩm vào Elasticsearch");
+    }
 
     private static ReviewStatsResponse getReviewStatsResponse(String id, List<Object[]> result) {
         Map<Integer, Long> reviewMap = new HashMap<>();

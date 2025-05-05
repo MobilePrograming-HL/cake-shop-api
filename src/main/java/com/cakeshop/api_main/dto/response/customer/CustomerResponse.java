@@ -1,16 +1,11 @@
 package com.cakeshop.api_main.dto.response.customer;
 
-import com.cakeshop.api_main.dto.response.address.AddressResponse;
-import com.cakeshop.api_main.model.Account;
-import com.cakeshop.api_main.model.Address;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Date;
-import java.util.List;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data

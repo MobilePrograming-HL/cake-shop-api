@@ -55,8 +55,8 @@ spring:
       port: ${REDISPORT:6379}
       password: ${REDISPASSWORD}
       url: ${REDIS_URL}
-  elasticsearch:
-    uris: http://localhost:9200
+    elasticsearch:
+      uris: http://localhost:9200
 
 open:
   api:

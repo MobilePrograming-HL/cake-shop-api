@@ -134,27 +134,49 @@ public class OrderController {
         return BaseResponseUtils.success(null, "Create order successfully");
     }
 
-//    @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public BaseResponse<Void> create(@Valid @RequestBody CreateOrderRequest request) {
-//        String username = SecurityUtil.getCurrentUsername();
-//        Customer customer = customerRepository.findByAccountUsername(username)
-//                .orElseThrow(() -> new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR));
-//        Address address = addressRepository.findById(request.getAddressId())
-//                .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
-//
-//        List<CartItem> cartItems = cartItemRepository.findAllByIdsAndUsername(request.getCartItemIds(), username);
-//        if (!cartItems.isEmpty()) {
-//            List<OrderItemDetails> orderItemDetailsList = cartItems.stream()
-//                    .map(
-//                            item -> new OrderItemDetails(item.getProduct(), item.getTag(), item.getQuantity())
-//                    ).toList();
-//            Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote());
-//            order.makeOrder(orderItemDetailsList);
-//            orderRepository.save(order);
-//            cartItemRepository.deleteAll(cartItems);
-//        }
-//        return BaseResponseUtils.success(null, "Create order successfully");
-//    }
+    @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<PayUrlResponse> create(@Valid @RequestBody CreateOrderRequest request) {
+        String username = SecurityUtil.getCurrentUsername();
+        Customer customer = customerRepository.findByAccountUsername(username)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR));
+        Address address = addressRepository.findById(request.getAddressId())
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
+
+        List<CartItem> cartItems = cartItemRepository.findAllByIdsAndUsername(request.getCartItemIds(), username);
+        if (!cartItems.isEmpty()) {
+            List<OrderItemDetails> orderItemDetailsList = cartItems.stream()
+                    .map(
+                            item -> new OrderItemDetails(item.getProduct(), item.getTag(), item.getQuantity())
+                    ).toList();
+            Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote());
+            int status;
+            if (Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)) {
+                status = BaseConstant.ORDER_STATUS_PENDING;
+            } else {
+                status = BaseConstant.ORDER_STATUS_PROCESSING;
+            }
+            OrderStatus orderStatus = new OrderStatus();
+            orderStatus.setStatus(status);
+            orderStatus.setDate(new Date());
+            orderStatus.setOrder(order);
+            order.makeOrder(orderItemDetailsList, orderStatus);
+            orderRepository.save(order);
+            if (Objects.equals(order.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)) {
+                try {
+                    Long amount = Math.round(order.getTotalAmount());
+                    CreateMomoResponse response = momoService.createPaymentUrl(amount, order.getId());
+                    PayUrlResponse payUrlResponse = new PayUrlResponse();
+                    payUrlResponse.setPayUrl(response.getPayUrl());
+                    return BaseResponseUtils.success(payUrlResponse, "Create MoMo payment URL successfully");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new BadRequestException(ErrorCode.CREATE_PAYMENT_ERROR);
+                }
+            }
+            cartItemRepository.deleteAll(cartItems);
+        }
+        return BaseResponseUtils.success(null, "Create order successfully");
+    }
 
     @PutMapping(value = "/update-status", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<Void> updateStatus(
