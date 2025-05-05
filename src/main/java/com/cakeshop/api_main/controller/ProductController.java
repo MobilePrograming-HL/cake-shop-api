@@ -1,12 +1,6 @@
 package com.cakeshop.api_main.controller;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.json.JsonData;
 import com.cakeshop.api_main.constant.BaseConstant;
 import com.cakeshop.api_main.dto.request.product.CreateProductRequest;
 import com.cakeshop.api_main.dto.request.product.UpdateProductRequest;
@@ -70,21 +64,11 @@ public class ProductController {
 
     @GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<PaginationResponse<ProductResponse>> list(
-            @RequestParam(required = false) String keyword,
             @Valid @ModelAttribute ProductCriteria criteria,
             Pageable pageable
     ) {
         criteria.setStatus(BaseConstant.PRODUCT_STATUS_SELLING);
-        Page<Product> pageData;
-        if (keyword == null) {
-            pageData = productRepository.findAll(criteria.getSpecification(), pageable);
-        } else {
-            String keywordUnaccent = "+" + ConvertUtils.stripAccents(keyword.trim())
-                    .replaceAll("\\s+", " ")
-                    .trim()
-                    .replace(" ", " +");
-            pageData = productRepository.searchUnaccented(keywordUnaccent, BaseConstant.PRODUCT_STATUS_SELLING, pageable);
-        }
+        Page<Product> pageData = productRepository.findAll(criteria.getSpecification(), pageable);;
         List<Product> products = pageData.getContent();
         List<String> productIds = products.stream()
                 .map(Product::getId)
@@ -152,7 +136,6 @@ public class ProductController {
         product.setTags(tags);
         product.setStatus(BaseConstant.PRODUCT_STATUS_SELLING);
         product.setImages(request.getImages());
-        product.setNameUnaccent(ConvertUtils.stripAccents(product.getName()));
 
         productRepository.save(product);
 
@@ -181,7 +164,6 @@ public class ProductController {
             product.setTags(tags);
         }
         productMapper.updateFromUpdateProductRequest(product, request);
-        product.setNameUnaccent(ConvertUtils.stripAccents(product.getName()));
         product.setImages(request.getImages());
         productRepository.save(product);
         return BaseResponseUtils.success(null, "Update product successfully");
