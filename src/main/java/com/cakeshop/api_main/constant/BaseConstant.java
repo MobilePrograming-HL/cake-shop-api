@@ -22,7 +22,7 @@ public class BaseConstant {
     public static final Integer ORDER_STATUS_CANCELED = 5;
 
     public static final Integer PAYMENT_METHOD_CASH = 1;
-    public static final Integer PAYMENT_METHOD_CREDIT = 2;
+    public static final Integer PAYMENT_METHOD_MOMO = 2;
     public static final Integer PAYMENT_METHOD_PAYPAL = 3;
 
     public static final String PHONE_PATTERN = "^0[35789][0-9]{8}$";

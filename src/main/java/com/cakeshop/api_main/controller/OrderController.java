@@ -9,6 +9,7 @@ import com.cakeshop.api_main.dto.request.orderItem.OrderItemDetails;
 import com.cakeshop.api_main.dto.response.BaseResponse;
 import com.cakeshop.api_main.dto.response.PaginationResponse;
 import com.cakeshop.api_main.dto.response.order.OrderResponse;
+import com.cakeshop.api_main.dto.response.order.PayUrlResponse;
 import com.cakeshop.api_main.dto.response.orderStatus.OrderStatusResponse;
 import com.cakeshop.api_main.exception.BadRequestException;
 import com.cakeshop.api_main.exception.ErrorCode;
@@ -18,6 +19,8 @@ import com.cakeshop.api_main.mapper.OrderStatusMapper;
 import com.cakeshop.api_main.model.*;
 import com.cakeshop.api_main.model.criteria.OrderCriteria;
 import com.cakeshop.api_main.repository.internal.*;
+import com.cakeshop.api_main.service.momo.CreateMomoResponse;
+import com.cakeshop.api_main.service.momo.MomoService;
 import com.cakeshop.api_main.utils.BaseResponseUtils;
 import com.cakeshop.api_main.utils.SecurityUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -31,9 +34,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -51,7 +52,9 @@ public class OrderController {
     ICartItemRepository cartItemRepository;
 
     OrderMapper orderMapper;
-    private final OrderStatusMapper orderStatusMapper;
+    OrderStatusMapper orderStatusMapper;
+
+    MomoService momoService;
 
     @GetMapping(value = "/get/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<OrderResponse> get(@PathVariable String id) {
@@ -90,7 +93,7 @@ public class OrderController {
     }
 
     @PostMapping(value = "/buy-now", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse<Void> buyNow(@Valid @RequestBody BuyNowOrderRequest request) {
+    public BaseResponse<PayUrlResponse> buyNow(@Valid @RequestBody BuyNowOrderRequest request) {
         String username = SecurityUtil.getCurrentUsername();
         Customer customer = customerRepository.findByAccountUsername(username)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR));
@@ -103,13 +106,36 @@ public class OrderController {
         List<OrderItemDetails> orderItemDetailsList = new ArrayList<>();
         orderItemDetailsList.add(new OrderItemDetails(product, tag, request.getQuantity()));
         Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote());
-        order.makeOrder(orderItemDetailsList);
+        int status;
+        if (Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)) {
+            status = BaseConstant.ORDER_STATUS_PENDING;
+        } else {
+            status = BaseConstant.ORDER_STATUS_PROCESSING;
+        }
+        OrderStatus orderStatus = new OrderStatus();
+        orderStatus.setStatus(status);
+        orderStatus.setDate(new Date());
+        orderStatus.setOrder(order);
+        order.makeOrder(orderItemDetailsList, orderStatus);
         orderRepository.save(order);
+
+        if (Objects.equals(order.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)) {
+            try {
+                Long amount = Math.round(order.getTotalAmount());
+                CreateMomoResponse response = momoService.createPaymentUrl(amount, order.getId());
+                PayUrlResponse payUrlResponse = new PayUrlResponse();
+                payUrlResponse.setPayUrl(response.getPayUrl());
+                return BaseResponseUtils.success(payUrlResponse, "Create MoMo payment URL successfully");
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new BadRequestException(ErrorCode.CREATE_PAYMENT_ERROR);
+            }
+        }
         return BaseResponseUtils.success(null, "Create order successfully");
     }
 
     @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse<Void> create(@Valid @RequestBody CreateOrderRequest request) {
+    public BaseResponse<PayUrlResponse> create(@Valid @RequestBody CreateOrderRequest request) {
         String username = SecurityUtil.getCurrentUsername();
         Customer customer = customerRepository.findByAccountUsername(username)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR));
@@ -123,8 +149,30 @@ public class OrderController {
                             item -> new OrderItemDetails(item.getProduct(), item.getTag(), item.getQuantity())
                     ).toList();
             Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote());
-            order.makeOrder(orderItemDetailsList);
+            int status;
+            if (Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)) {
+                status = BaseConstant.ORDER_STATUS_PENDING;
+            } else {
+                status = BaseConstant.ORDER_STATUS_PROCESSING;
+            }
+            OrderStatus orderStatus = new OrderStatus();
+            orderStatus.setStatus(status);
+            orderStatus.setDate(new Date());
+            orderStatus.setOrder(order);
+            order.makeOrder(orderItemDetailsList, orderStatus);
             orderRepository.save(order);
+            if (Objects.equals(order.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)) {
+                try {
+                    Long amount = Math.round(order.getTotalAmount());
+                    CreateMomoResponse response = momoService.createPaymentUrl(amount, order.getId());
+                    PayUrlResponse payUrlResponse = new PayUrlResponse();
+                    payUrlResponse.setPayUrl(response.getPayUrl());
+                    return BaseResponseUtils.success(payUrlResponse, "Create MoMo payment URL successfully");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new BadRequestException(ErrorCode.CREATE_PAYMENT_ERROR);
+                }
+            }
             cartItemRepository.deleteAll(cartItems);
         }
         return BaseResponseUtils.success(null, "Create order successfully");
@@ -156,5 +204,28 @@ public class OrderController {
         order.cancel();
         orderRepository.save(order);
         return BaseResponseUtils.success(null, "Cancel order successfully");
+    }
+
+    @GetMapping("/ipn-handler")
+    public BaseResponse<Void> inpHandler(@RequestParam Map<String, String> params) {
+        int resultCode = Integer.parseInt(params.get("resultCode"));
+        if (resultCode == 0) {
+            String orderId = params.get("orderId");
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.ORDER_NOT_FOUND_ERROR));
+            if (!Objects.equals(order.getCurrentStatus().getStatus(), BaseConstant.ORDER_STATUS_PENDING)) {
+                return BaseResponseUtils.success(null, "Đơn hàng đã xử lý rồi");
+            }
+            OrderStatus orderStatus = new OrderStatus();
+            orderStatus.setStatus(BaseConstant.ORDER_STATUS_PROCESSING);
+            orderStatus.setDate(new Date());
+            orderStatus.setOrder(order);
+
+            order.setCurrentStatus(orderStatus);
+            order.getOrderStatuses().add(orderStatus);
+            orderRepository.save(order);
+            return BaseResponseUtils.success(null, "Giao dịch thành công");
+        }
+        return BaseResponseUtils.success(null, "Giao dịch thất bại");
     }
 }

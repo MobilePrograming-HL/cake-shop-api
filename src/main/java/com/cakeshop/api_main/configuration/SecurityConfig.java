@@ -42,7 +42,8 @@ public class SecurityConfig {
         "/webjars/**",
         "/product/**",
         "/category/**",
-        "/tag/**"
+        "/tag/**",
+        "/order/ipn-handler"
     };
 
     CustomJwtDecoder jwtDecoder;

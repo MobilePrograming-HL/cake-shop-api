@@ -65,6 +65,9 @@ public enum ErrorCode {
 
     // CART_ITEM
     CART_ITEM_NOT_FOUND_ERROR(1029, "Cart item not found", HttpStatus.NOT_FOUND),
+
+    // PAYMENT
+    CREATE_PAYMENT_ERROR(1030, "Create payment error", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode httpStatusCode) {
