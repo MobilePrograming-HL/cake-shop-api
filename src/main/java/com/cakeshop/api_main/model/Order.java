@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Duration;
@@ -63,12 +64,16 @@ public class Order extends Abstract {
     @Column(name = "note", columnDefinition = "TEXT")
     String note;
 
-    public Order(Customer customer, Integer shippingFee, Integer paymentMethod, Address address, String note) {
+    @Column(name = "code", unique = true)
+    String code;
+
+    public Order(Customer customer, Integer shippingFee, Integer paymentMethod, Address address, String note, String code) {
         this.customer = customer;
         this.shippingFee = shippingFee;
         this.paymentMethod = paymentMethod;
         this.address = address;
         this.note = note;
+        this.code = code;
     }
 
     public void makeOrder(List<OrderItemDetails> orderItemList, OrderStatus status) {

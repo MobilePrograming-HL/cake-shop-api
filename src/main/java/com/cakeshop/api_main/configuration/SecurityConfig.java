@@ -43,7 +43,8 @@ public class SecurityConfig {
         "/product/**",
         "/category/**",
         "/tag/**",
-        "/order/ipn-handler"
+        "/order/fiserv-webhook",
+        "/fiserv/**"
     };
 
     CustomJwtDecoder jwtDecoder;
