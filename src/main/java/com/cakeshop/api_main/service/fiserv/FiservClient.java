@@ -5,7 +5,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "fiservClient", url = "https://prod.emea.api.fiservapps.com/sandbox")
+@FeignClient(name = "fiservClient", url = "${payment.fiserv.url}")
 public interface FiservClient {
     @PostMapping(value = "/exp/v1/checkouts", consumes = MediaType.APPLICATION_JSON_VALUE)
     FiservCreateCheckoutResponse createCheckout(

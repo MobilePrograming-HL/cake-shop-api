@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class PostAuthRequest {
     private String requestType;
-    private String merchantTransactionId;
     private OrderFiserv order;
     private Money transactionAmount;
 }

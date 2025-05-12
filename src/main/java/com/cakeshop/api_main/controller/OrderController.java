@@ -151,7 +151,7 @@ public class OrderController {
             }
         } else if (Objects.equals(order.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_FISERV)) {
             Double amount = order.getTotalAmount();
-            FiservCreateCheckoutResponse response = fiservService.create(order.getId(), "EUR", amount);
+            FiservCreateCheckoutResponse response = fiservService.create(order.getCode(), "USD", amount);
             orderResponse.setFiservInfo(response);
         }
         return BaseResponseUtils.success(orderResponse, "Create order successfully");
@@ -201,7 +201,7 @@ public class OrderController {
                 }
             } else if (Objects.equals(order.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_FISERV)) {
                 Double amount = order.getTotalAmount();
-                FiservCreateCheckoutResponse response = fiservService.create(order.getId(), "", amount);
+                FiservCreateCheckoutResponse response = fiservService.create(order.getCode(), "USD", amount);
                 orderResponse.setFiservInfo(response);
             }
             cartItemRepository.deleteAll(cartItems);
@@ -261,25 +261,28 @@ public class OrderController {
     }
 
     @PostMapping("/fiserv-webhook")
-    public BaseResponse<Void> ipnHandler(@RequestBody FiservWebhookPayload payload, @RequestParam Long restaurentId) {
+    public BaseResponse<Void> ipnHandler(@RequestBody FiservWebhookPayload payload, @RequestParam Long restaurantId) {
         log.info("ipn handler called");
         if ("PRE-AUTH".equals(payload.getTransactionType())
                 && "APPROVED".equals(payload.getTransactionStatus())) {
-            log.info("restaurentId = ", restaurentId);
+            log.info("restaurantId = ", restaurantId);
             String orderId = payload.getOrderId();
             Double amount = payload.getApprovedAmount().getTotal();
             String currency = payload.getApprovedAmount().getCurrency();
             String checkoutId = payload.getCheckoutId();
 
-            CheckoutResponse checkoutResponse = fiservService.getCheckout(checkoutId);
-
+            Order order = orderRepository.findByCode(orderId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.ORDER_NOT_FOUND_ERROR));
             // update status
-            String merchantTransactionId = checkoutResponse.getRequestSent().getMerchantTransactionId();
-            CaptureResponse captureResponse = fiservService.captureByOrderId(orderId, amount, currency, merchantTransactionId);
+            CaptureResponse captureResponse = fiservService.captureByOrderId(orderId, amount, currency);
             if (captureResponse != null && captureResponse.getTransactionType().equals("POSTAUTH") && captureResponse.getTransactionStatus().equals("APPROVED")) {
-                Order order = orderRepository.findById(captureResponse.getMerchantTransactionId())
-                        .orElseThrow(() -> new NotFoundException(ErrorCode.ORDER_NOT_FOUND_ERROR));
-                log.info(order.toString());
+                OrderStatus orderStatus = new OrderStatus();
+                orderStatus.setStatus(BaseConstant.ORDER_STATUS_PROCESSING);
+                orderStatus.setDate(new Date());
+                orderStatus.setOrder(order);
+                order.setCurrentStatus(orderStatus);
+                order.getOrderStatuses().add(orderStatus);
+                orderRepository.save(order);
             }
         }
         return BaseResponseUtils.success(null, "call back");
