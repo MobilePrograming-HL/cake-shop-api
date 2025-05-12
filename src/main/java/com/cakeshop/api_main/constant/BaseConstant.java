@@ -23,7 +23,7 @@ public class BaseConstant {
 
     public static final Integer PAYMENT_METHOD_CASH = 1;
     public static final Integer PAYMENT_METHOD_MOMO = 2;
-    public static final Integer PAYMENT_METHOD_PAYPAL = 3;
+    public static final Integer PAYMENT_METHOD_FISERV = 3;
 
     public static final String PHONE_PATTERN = "^0[35789][0-9]{8}$";
     public static final String EMAIL_PATTERN = "^(?!.*[.]{2,})[a-zA-Z0-9.%]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";

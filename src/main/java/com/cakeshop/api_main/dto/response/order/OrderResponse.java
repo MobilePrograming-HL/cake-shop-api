@@ -4,11 +4,13 @@ import com.cakeshop.api_main.dto.response.address.AddressResponse;
 import com.cakeshop.api_main.dto.response.customer.CustomerResponse;
 import com.cakeshop.api_main.dto.response.orderItem.OrderItemResponse;
 import com.cakeshop.api_main.dto.response.orderStatus.OrderStatusResponse;
+import com.cakeshop.api_main.service.fiserv.FiservCreateCheckoutResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Date;
 import java.util.List;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -16,6 +18,8 @@ import java.util.List;
 public class OrderResponse {
     @Schema(description = "id")
     String id;
+    @Schema(description = "code")
+    String code;
     @Schema(description = "customer")
     CustomerResponse customer;
     @Schema(description = "orderItems")
@@ -34,4 +38,11 @@ public class OrderResponse {
     String note;
     @Schema(description = "address")
     AddressResponse address;
+    @Schema(description = "momoInfo")
+    MomoInfoResponse momoInfo;
+    @Schema(description = "fiservInfo")
+    FiservCreateCheckoutResponse fiservInfo;
+    @Schema(description = "createdAt")
+    Date createdAt;
+
 }

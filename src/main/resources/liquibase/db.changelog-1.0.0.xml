@@ -96,4 +96,12 @@
     <changeSet author="Authentication" id="1743123659405-12">
         <addForeignKeyConstraint baseColumnNames="group_id" baseTableName="tbl_permission_group" constraintName="FKr1sqlmeir2hepwleu3o2nrcvu" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="tbl_group" validate="true"/>
     </changeSet>
+    <changeSet author="Authentication" id="1747051372440-6">
+        <addColumn tableName="tbl_order">
+            <column name="code" type="varchar(255)" afterColumn="id"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="Authentication" id="1747051372440-7">
+        <addUniqueConstraint columnNames="code" constraintName="UC_TBL_ORDERCODE_COL" tableName="tbl_order"/>
+    </changeSet>
 </databaseChangeLog>

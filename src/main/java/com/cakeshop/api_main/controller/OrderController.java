@@ -4,12 +4,11 @@ import com.cakeshop.api_main.constant.BaseConstant;
 import com.cakeshop.api_main.dto.request.order.BuyNowOrderRequest;
 import com.cakeshop.api_main.dto.request.order.CreateOrderRequest;
 import com.cakeshop.api_main.dto.request.order.UpdateOrderStatusRequest;
-import com.cakeshop.api_main.dto.request.orderItem.CreateOrderItemRequest;
 import com.cakeshop.api_main.dto.request.orderItem.OrderItemDetails;
 import com.cakeshop.api_main.dto.response.BaseResponse;
 import com.cakeshop.api_main.dto.response.PaginationResponse;
+import com.cakeshop.api_main.dto.response.order.MomoInfoResponse;
 import com.cakeshop.api_main.dto.response.order.OrderResponse;
-import com.cakeshop.api_main.dto.response.order.PayUrlResponse;
 import com.cakeshop.api_main.dto.response.orderStatus.OrderStatusResponse;
 import com.cakeshop.api_main.exception.BadRequestException;
 import com.cakeshop.api_main.exception.ErrorCode;
@@ -19,6 +18,8 @@ import com.cakeshop.api_main.mapper.OrderStatusMapper;
 import com.cakeshop.api_main.model.*;
 import com.cakeshop.api_main.model.criteria.OrderCriteria;
 import com.cakeshop.api_main.repository.internal.*;
+import com.cakeshop.api_main.service.BaseService;
+import com.cakeshop.api_main.service.fiserv.*;
 import com.cakeshop.api_main.service.momo.CreateMomoResponse;
 import com.cakeshop.api_main.service.momo.MomoService;
 import com.cakeshop.api_main.utils.BaseResponseUtils;
@@ -29,32 +30,48 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
 @RequestMapping("/order")
-@RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderController {
+    @Autowired
     ICustomerRepository customerRepository;
+    @Autowired
     IProductRepository productRepository;
+    @Autowired
     IOrderRepository orderRepository;
+    @Autowired
     ITagRepository tagRepository;
+    @Autowired
     IAddressRepository addressRepository;
+    @Autowired
     ICartItemRepository cartItemRepository;
 
+    @Autowired
     OrderMapper orderMapper;
+    @Autowired
     OrderStatusMapper orderStatusMapper;
 
+    @Autowired
     MomoService momoService;
+    @Autowired
+    FiservService fiservService;
+    @Autowired
+    BaseService baseService;
+
+    @Value(value = "${order.keyNumer}")
+    Long keyNumber;
 
     @GetMapping(value = "/get/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<OrderResponse> get(@PathVariable String id) {
@@ -93,7 +110,7 @@ public class OrderController {
     }
 
     @PostMapping(value = "/buy-now", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse<PayUrlResponse> buyNow(@Valid @RequestBody BuyNowOrderRequest request) {
+    public BaseResponse<OrderResponse> buyNow(@Valid @RequestBody BuyNowOrderRequest request) {
         String username = SecurityUtil.getCurrentUsername();
         Customer customer = customerRepository.findByAccountUsername(username)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR));
@@ -105,9 +122,11 @@ public class OrderController {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
         List<OrderItemDetails> orderItemDetailsList = new ArrayList<>();
         orderItemDetailsList.add(new OrderItemDetails(product, tag, request.getQuantity()));
-        Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote());
+        String code = baseService.getOrderCode(keyNumber);
+        Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote(), code);
         int status;
-        if (Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)) {
+        if (Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO) ||
+                Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_FISERV)) {
             status = BaseConstant.ORDER_STATUS_PENDING;
         } else {
             status = BaseConstant.ORDER_STATUS_PROCESSING;
@@ -118,24 +137,29 @@ public class OrderController {
         orderStatus.setOrder(order);
         order.makeOrder(orderItemDetailsList, orderStatus);
         orderRepository.save(order);
+        OrderResponse orderResponse = orderMapper.fromEntityToOrderResponse(order);
 
         if (Objects.equals(order.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)) {
             try {
                 Long amount = Math.round(order.getTotalAmount());
                 CreateMomoResponse response = momoService.createPaymentUrl(amount, order.getId());
-                PayUrlResponse payUrlResponse = new PayUrlResponse();
+                MomoInfoResponse payUrlResponse = new MomoInfoResponse();
                 payUrlResponse.setPayUrl(response.getPayUrl());
-                return BaseResponseUtils.success(payUrlResponse, "Create MoMo payment URL successfully");
+                orderResponse.setMomoInfo(payUrlResponse);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new BadRequestException(ErrorCode.CREATE_PAYMENT_ERROR);
             }
+        } else if (Objects.equals(order.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_FISERV)) {
+            Double amount = order.getTotalAmount();
+            FiservCreateCheckoutResponse response = fiservService.create(order.getId(), "EUR", amount);
+            orderResponse.setFiservInfo(response);
         }
-        return BaseResponseUtils.success(null, "Create order successfully");
+        return BaseResponseUtils.success(orderResponse, "Create order successfully");
     }
 
     @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse<PayUrlResponse> create(@Valid @RequestBody CreateOrderRequest request) {
+    public BaseResponse<OrderResponse> create(@Valid @RequestBody CreateOrderRequest request) {
         String username = SecurityUtil.getCurrentUsername();
         Customer customer = customerRepository.findByAccountUsername(username)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR));
@@ -143,14 +167,17 @@ public class OrderController {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
 
         List<CartItem> cartItems = cartItemRepository.findAllByIdsAndUsername(request.getCartItemIds(), username);
+        OrderResponse orderResponse = null;
         if (!cartItems.isEmpty()) {
             List<OrderItemDetails> orderItemDetailsList = cartItems.stream()
                     .map(
                             item -> new OrderItemDetails(item.getProduct(), item.getTag(), item.getQuantity())
                     ).toList();
-            Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote());
+            String code = baseService.getOrderCode(keyNumber);
+            Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote(), code);
             int status;
-            if (Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)) {
+            if (Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)
+                    || Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_FISERV)) {
                 status = BaseConstant.ORDER_STATUS_PENDING;
             } else {
                 status = BaseConstant.ORDER_STATUS_PROCESSING;
@@ -161,21 +188,26 @@ public class OrderController {
             orderStatus.setOrder(order);
             order.makeOrder(orderItemDetailsList, orderStatus);
             orderRepository.save(order);
+            orderResponse = orderMapper.fromEntityToOrderResponse(order);
             if (Objects.equals(order.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)) {
                 try {
                     Long amount = Math.round(order.getTotalAmount());
                     CreateMomoResponse response = momoService.createPaymentUrl(amount, order.getId());
-                    PayUrlResponse payUrlResponse = new PayUrlResponse();
+                    MomoInfoResponse payUrlResponse = new MomoInfoResponse();
                     payUrlResponse.setPayUrl(response.getPayUrl());
-                    return BaseResponseUtils.success(payUrlResponse, "Create MoMo payment URL successfully");
+                    orderResponse.setMomoInfo(payUrlResponse);
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new BadRequestException(ErrorCode.CREATE_PAYMENT_ERROR);
                 }
+            } else if (Objects.equals(order.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_FISERV)) {
+                Double amount = order.getTotalAmount();
+                FiservCreateCheckoutResponse response = fiservService.create(order.getId(), "", amount);
+                orderResponse.setFiservInfo(response);
             }
             cartItemRepository.deleteAll(cartItems);
         }
-        return BaseResponseUtils.success(null, "Create order successfully");
+        return BaseResponseUtils.success(orderResponse, "Create order successfully");
     }
 
     @PutMapping(value = "/update-status", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -227,5 +259,30 @@ public class OrderController {
             return BaseResponseUtils.success(null, "Giao dịch thành công");
         }
         return BaseResponseUtils.success(null, "Giao dịch thất bại");
+    }
+
+    @PostMapping("/fiserv-webhook")
+    public BaseResponse<Void> ipnHandler(@RequestBody FiservWebhookPayload payload, @RequestParam Long restaurentId) {
+        log.info("ipn handler called");
+        if ("PRE-AUTH".equals(payload.getTransactionType())
+                && "APPROVED".equals(payload.getTransactionStatus())) {
+            log.info("restaurentId = ", restaurentId);
+            String orderId = payload.getOrderId();
+            Double amount = payload.getApprovedAmount().getTotal();
+            String currency = payload.getApprovedAmount().getCurrency();
+            String checkoutId = payload.getCheckoutId();
+
+            CheckoutResponse checkoutResponse = fiservService.getCheckout(checkoutId);
+
+            // update status
+            String merchantTransactionId = checkoutResponse.getRequestSent().getMerchantTransactionId();
+            CaptureResponse captureResponse = fiservService.captureByOrderId(orderId, amount, currency, merchantTransactionId);
+            if (captureResponse != null && captureResponse.getTransactionType().equals("POSTAUTH") && captureResponse.getTransactionStatus().equals("APPROVED")) {
+                Order order = orderRepository.findById(captureResponse.getMerchantTransactionId())
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.ORDER_NOT_FOUND_ERROR));
+                log.info(order.toString());
+            }
+        }
+        return BaseResponseUtils.success(null, "call back");
     }
 }

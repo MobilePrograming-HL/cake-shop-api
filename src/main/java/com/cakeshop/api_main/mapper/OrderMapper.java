@@ -11,6 +11,7 @@ import java.util.List;
         uses = {CustomerMapper.class, OrderItemMapper.class, OrderStatusMapper.class, AddressMapper.class})
 public interface OrderMapper {
     @Mapping(source = "id", target = "id")
+    @Mapping(source = "code", target = "code")
     @Mapping(source = "customer", target = "customer", qualifiedByName = "fromEntityToCustomerResponse")
     @Mapping(source = "orderItems", target = "orderItems", qualifiedByName = "fromEntitiesToOrderItemResponseList")
     @Mapping(source = "shippingFee", target = "shippingFee")
@@ -20,6 +21,7 @@ public interface OrderMapper {
     @Mapping(source = "currentStatus", target = "status", qualifiedByName = "fromEntityToOrderStatusResponse")
     @Mapping(source = "note", target = "note")
     @Mapping(source = "address", target = "address", qualifiedByName = "fromEntityToAddressResponse")
+    @Mapping(source = "createdAt", target = "createdAt")
     @BeanMapping(ignoreByDefault = true)
     @Named("fromEntityToOrderResponse")
     OrderResponse fromEntityToOrderResponse(Order order);

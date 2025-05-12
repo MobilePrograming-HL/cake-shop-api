@@ -8,6 +8,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
 @Setter
-public class PayUrlResponse {
+public class MomoInfoResponse {
     private String payUrl;
 }
