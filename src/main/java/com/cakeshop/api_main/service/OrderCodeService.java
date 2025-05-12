@@ -6,12 +6,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class OrderCodeService {
     public static final int TWO_HOUR = 2 * 60 * 60 * 1000;
     private static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String DIGITS = "0123456789";
+    private final AtomicLong counter = new AtomicLong(System.currentTimeMillis());
     private final SecureRandom secureRandom;
     private List<Integer> numberRand = new ArrayList<>();
 
@@ -33,35 +35,30 @@ public class OrderCodeService {
     }
 
     public synchronized String orderCode(Long keyNumber) {
-        // Xóa các key đã quá 2 giờ
-        Iterator<Map.Entry<String, Long>> iterator = storeOrderSttForCheck.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, Long> entry = iterator.next();
-            if ((System.currentTimeMillis() - entry.getValue()) >= TWO_HOUR) {
-                iterator.remove();
+        long next = counter.getAndIncrement();
+
+        String base36 = Long.toString(next, 36).toUpperCase();
+
+        String padded = String.format("%10s", base36).replace(' ', '0');
+
+        StringBuilder letters = new StringBuilder();
+        StringBuilder digits = new StringBuilder();
+
+        for (char c : padded.toCharArray()) {
+            if (Character.isLetter(c) && letters.length() < 4) {
+                letters.append(c);
+            } else if (Character.isDigit(c)) {
+                digits.append(c);
             }
         }
 
-        secureRandom.setSeed(keyNumber);
+        while (letters.length() < 4) {
+            letters.append(LETTERS.charAt(secureRandom.nextInt(LETTERS.length())));
+        }
+        while (digits.length() < 6) {
+            digits.append(DIGITS.charAt(secureRandom.nextInt(DIGITS.length())));
+        }
 
-        String code;
-        do {
-            StringBuilder builder = new StringBuilder();
-
-            for (int i = 0; i < 4; i++) {
-                int index = secureRandom.nextInt(LETTERS.length());
-                builder.append(LETTERS.charAt(index));
-            }
-
-            for (int i = 0; i < 6; i++) {
-                int index = secureRandom.nextInt(DIGITS.length());
-                builder.append(DIGITS.charAt(index));
-            }
-
-            code = builder.toString();
-        } while (storeOrderSttForCheck.containsKey(code));
-
-        storeOrderSttForCheck.put(code, System.currentTimeMillis());
-        return code;
+        return letters.substring(0, 4) + digits.substring(0, 6);
     }
 }

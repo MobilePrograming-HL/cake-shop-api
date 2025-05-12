@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface IOrderRepository extends JpaRepository<Order, String>, JpaSpecificationExecutor<Order> {
     Optional<Order> findByIdAndCustomerAccountUsername(String orderId, String username);
+
+    Optional<Order> findByCode(String code);
 }
