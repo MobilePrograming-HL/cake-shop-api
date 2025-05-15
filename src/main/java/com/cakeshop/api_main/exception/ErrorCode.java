@@ -68,6 +68,8 @@ public enum ErrorCode {
 
     // PAYMENT
     CREATE_PAYMENT_ERROR(1030, "Create payment error", HttpStatus.BAD_REQUEST),
+
+    ADDRESS_CANT_DELETE_RELATIONSHIP_WITH_ORDER_ERROR(1031, "Address cannot delete relationship with order", HttpStatus.BAD_REQUEST),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode httpStatusCode) {

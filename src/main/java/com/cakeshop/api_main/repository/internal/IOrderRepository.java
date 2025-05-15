@@ -17,6 +17,9 @@ public interface IOrderRepository extends JpaRepository<Order, String>, JpaSpeci
 
     Optional<Order> findByCode(String code);
 
+
+    boolean existsByAddressId(String addressId);
+
     @Query("SELECT o FROM Order o WHERE o.currentStatus.status = :status AND o.createdAt <= :timeout")
     List<Order> findPendingOrdersBefore(@Param("timeout") LocalDateTime timeout,
                                         @Param("status") Integer status);
