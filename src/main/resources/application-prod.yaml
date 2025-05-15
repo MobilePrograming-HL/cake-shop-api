@@ -1,0 +1,82 @@
+server:
+  tomcat:
+    threads:
+      max: 200
+  servlet:
+    context-path: /api/v1
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+    driverClassName: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 10
+      idle-timeout: 30000
+      connection-timeout: 30000
+      max-lifetime: 600000
+      pool-name: HikariCP
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MySQLDialect
+        order_inserts: true
+        order_updates: true
+        use_sql_comments: false
+  liquibase:
+    change-log: classpath:liquibase/db.changelog-master.xml
+    enabled: true
+    database-change-log-table: DATABASECHANGELOG
+    database-change-log-lock-table: DATABASECHANGELOGLOCK
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    protocol: ${MAIL_PROTOCOL}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.ssl.enable: false
+      mail.smtp.starttls.enable: true
+  config:
+    import: optional:file:.env[.properties]
+  data:
+    redis:
+      host: ${REDISHOST}
+      port: ${REDISPORT:6379}
+      password: ${REDISPASSWORD}
+      url: ${REDIS_URL}
+      repositories:
+        enabled: false
+
+open:
+  api:
+    title: API Documentation
+    version: v1.1.0
+    description: API-Service
+    serverUrl: https://${RAILWAY_PUBLIC_DOMAIN}/api/v1
+    serverName: Server Test
+
+jwt:
+  signerKey: ${SECURITY_SIGNER_KEY}
+  valid-duration: 7    # 7 ngày cho access token
+  refreshable-duration: 30  # 30 ngày cho access token
+
+outbound:
+  identity:
+    client-id: ${CLIENT_ID}
+    client-secret: ${CLIENT_SECRET}
+    redirect-uri: https://${RAILWAY_PUBLIC_DOMAIN}${SECURITY_REDIRECT_URI}
+
+logging:
+  level:
+    org:
+      springframework:
+        security: WARN

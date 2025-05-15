@@ -7,17 +7,23 @@ import com.cakeshop.api_main.dto.response.IntrospectResponse;
 import com.cakeshop.api_main.dto.response.LoginResponse;
 import com.cakeshop.api_main.dto.response.OutboundUserResponse;
 import com.cakeshop.api_main.exception.AppException;
+import com.cakeshop.api_main.exception.BadRequestException;
 import com.cakeshop.api_main.exception.ErrorCode;
+import com.cakeshop.api_main.exception.NotFoundException;
 import com.cakeshop.api_main.model.Account;
+import com.cakeshop.api_main.model.Customer;
 import com.cakeshop.api_main.model.Group;
 import com.cakeshop.api_main.model.TokenValidation;
 import com.cakeshop.api_main.repository.external.IOutboundIdentityClientRepository;
 import com.cakeshop.api_main.repository.external.IOutboundUserClientRepository;
 import com.cakeshop.api_main.repository.internal.IAccountRepository;
+import com.cakeshop.api_main.repository.internal.ICustomerRepository;
 import com.cakeshop.api_main.repository.internal.IGroupRepository;
 import com.cakeshop.api_main.repository.internal.ITokenValidationRepository;
 import com.cakeshop.api_main.service.email.IEmailService;
+import com.cakeshop.api_main.service.redis.IRedisService;
 import com.cakeshop.api_main.utils.ObjectGenerationUtils;
+import com.cakeshop.api_main.utils.RedisUtils;
 import com.cakeshop.api_main.utils.StringBuilderUtils;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
@@ -34,6 +40,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
 
@@ -43,10 +50,15 @@ import java.util.Objects;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationServiceImpl implements IAuthenticationService {
 
+    private static final int MAX_RESEND_ATTEMPTS = 3;
+    private static final int RESEND_OTP_TIMEOUT_SECONDS = 300;
+
     IAccountRepository accountRepository;
     ITokenValidationRepository tokenValidationRepository;
     IGroupRepository groupRepository;
+    ICustomerRepository customerRepository;
     IEmailService emailService;
+    IRedisService redisService;
     PasswordEncoder passwordEncoder;
     ObjectGenerationUtils objectGenerationUtils;
 
@@ -124,12 +136,10 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Override
     public String register(RegisterRequest request) {
-
-        var existedAccount = accountRepository.findByEmail(request.getEmail());
-
-        if (existedAccount != null) {
-            log.info("Email existed");
-            throw new AppException(ErrorCode.RESOURCE_EXISTED);
+        if (accountRepository.existsByEmail(request.getEmail()) ||
+                accountRepository.existsByUsername(request.getUsername())) {
+            log.info("Email or Username existed");
+            throw new BadRequestException(ErrorCode.RESOURCE_EXISTED);
         }
 
         if (!Objects.equals(request.getPassword(), request.getConfirmPassword())) {
@@ -141,7 +151,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             Account newAccount = Account.builder()
                     .username(request.getUsername())
                     .email(request.getEmail())
-                    .avatarPath("https://kenh14cdn.com/203336854389633024/2024/10/16/chuong-nhuoc-nam1-1729084853586986899768-1729096455287-17290964555741951663122.jpg")
+                    .avatarPath("https://res.cloudinary.com/dcxgx3ott/image/upload/v1744349601/Avatar_UTE_hddqyo.png")
                     .password(passwordEncoder.encode(request.getPassword()))
                     .isActive(false)
                     .build();
@@ -149,7 +159,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             // Default group
             Group defaultGroup = groupRepository.findByKind(BaseConstant.GROUP_KIND_CUSTOMER);
             if (defaultGroup == null) {
-                throw new AppException(ErrorCode.RESOURCE_EXISTED);
+                throw new NotFoundException(ErrorCode.GROUP_NOT_FOUND_ERROR);
             }
             newAccount.setGroup(defaultGroup);
 
@@ -229,10 +239,21 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
             Account existedAccount = accountRepository.findByEmail(request.getEmail());
             if (existedAccount == null) {
                 log.info("Account not found");
-                throw new AppException(ErrorCode.RESOURCE_NOT_EXISTED);
+                throw new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR);
             }
             existedAccount.setIsActive(true);
+
+            Customer customer = Customer.builder()
+                    .account(existedAccount)
+                    .firstName("")
+                    .lastName("")
+                    .dob(null)
+                    .loyalty(0L)
+                    .addresses(new ArrayList<>())
+                    .build();
+
             accountRepository.save(existedAccount);
+            customerRepository.save(customer);
 
             return "Active account is successful";
 
@@ -244,28 +265,40 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
 
     @Override
     public String resendOtpCode(ResendOtpCodeRequest request) {
-
         Account existedAccount = accountRepository.findByEmail(request.getEmail());
         if (existedAccount == null) {
             log.info("Account not found");
-            throw new AppException(ErrorCode.RESOURCE_NOT_EXISTED);
+            throw new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR);
         }
-
-        String message = "";
-
-        if (!existedAccount.getIsActive()) {
-            String newOtpCode = objectGenerationUtils.generateOtp();
-            emailService.saveOtp(existedAccount.getEmail(), newOtpCode);
-
-            String subject = StringBuilderUtils.subjectResendEmail;
-            String body = StringBuilderUtils.buildBodyResendEmail(existedAccount.getUsername(), newOtpCode);
-
-            emailService.sendEmail(existedAccount.getEmail(), subject, body);
-            message = "Resend email successful";
-        } else {
-            message = "User is already active";
+        // account đã active
+        if (existedAccount.getIsActive()) {
+            return "User is already active";
         }
-        return message;
+        // check otp tồn tại
+        boolean otpExists = redisService.hasKey(RedisUtils.getRedisKeyForConfirmEmail(existedAccount.getEmail()));
+        if (!otpExists) {
+            accountRepository.delete(existedAccount);
+            log.info("OTP expired for email: {}", existedAccount.getEmail());
+            return "OTP expired. Please register again.";
+        }
+        String resendKey = RedisUtils.getRedisKeyForResendOtp(existedAccount.getEmail());
+        Integer resendCount = redisService.getObject(resendKey, Integer.class);
+        // nếu đã qua 3 lần resend
+        if (resendCount != null && resendCount >= MAX_RESEND_ATTEMPTS) {
+            accountRepository.delete(existedAccount);
+            log.info("Resend OTP limit exceeded for email: {}", existedAccount.getEmail());
+            return "You have exceeded the maximum number of OTP resend attempts. Please register again.";
+        }
+        String newOtpCode = objectGenerationUtils.generateOtp();
+        emailService.saveOtp(existedAccount.getEmail(), newOtpCode);
+        int newResendCount = resendCount == null ? 1 : resendCount + 1;
+        redisService.setObject(resendKey, newResendCount, RESEND_OTP_TIMEOUT_SECONDS);
+
+        String subject = StringBuilderUtils.subjectResendEmail;
+        String body = StringBuilderUtils.buildBodyResendEmail(existedAccount.getUsername(), newOtpCode);
+        emailService.sendEmail(existedAccount.getEmail(), subject, body);
+
+        return "Resend email successful";
     }
 
     @Override
@@ -301,7 +334,7 @@ public class AuthenticationServiceImpl implements IAuthenticationService {
                         .build();
                 Group defaultGroup = groupRepository.findByKind(BaseConstant.GROUP_KIND_CUSTOMER);
                 if (defaultGroup == null) {
-                    throw new AppException(ErrorCode.RESOURCE_EXISTED);
+                    throw new NotFoundException(ErrorCode.GROUP_NOT_FOUND_ERROR);
                 }
                 account.setGroup(defaultGroup);
                 accountRepository.save(account);

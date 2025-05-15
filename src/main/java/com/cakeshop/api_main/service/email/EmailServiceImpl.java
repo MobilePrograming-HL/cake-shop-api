@@ -1,6 +1,7 @@
 package com.cakeshop.api_main.service.email;
 
 import com.cakeshop.api_main.service.redis.IRedisService;
+import com.cakeshop.api_main.utils.RedisUtils;
 import com.cakeshop.api_main.utils.StringBuilderUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ public class EmailServiceImpl implements IEmailService {
 
     @Override
     public boolean validateOtp(String email, String otp) {
-        String redisKey = getRedisKeyForConfirmEmail(email);
+        String redisKey = RedisUtils.getRedisKeyForConfirmEmail(email);
         String storedOtp = redisService.getObject(redisKey, String.class);
 
         if (storedOtp != null && storedOtp.equals(otp)) {
@@ -44,11 +45,7 @@ public class EmailServiceImpl implements IEmailService {
 
     @Override
     public void saveOtp(String email, String otp) {
-        redisService.setObject(getRedisKeyForConfirmEmail(email), otp, 150);
-    }
-
-    private String getRedisKeyForConfirmEmail(String email) {
-        return "auth:email:otp:" + email;
+        redisService.setObject(RedisUtils.getRedisKeyForConfirmEmail(email), otp, 60);
     }
 
     // ===== Async Email =====

@@ -19,7 +19,6 @@ import java.util.List;
 public class CategoryCriteria extends BaseCriteria<Category> {
     private String code;
     private String name;
-    private String description;
 
     @Override
     public Specification<Category> getSpecification() {
@@ -27,13 +26,10 @@ public class CategoryCriteria extends BaseCriteria<Category> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (StringUtils.hasText(getCode())) {
-                predicates.add(cb.like(cb.lower(root.get("code")), "%" + getCode().toLowerCase() + "%"));
+                predicates.add(cb.equal(root.get("code"), getCode()));
             }
             if (StringUtils.hasText(getName())) {
                 predicates.add(cb.like(cb.lower(root.get("name")), "%" + getName().toLowerCase() + "%"));
-            }
-            if (StringUtils.hasText(getDescription())) {
-                predicates.add(cb.like(cb.lower(root.get("description")), "%" + getDescription().toLowerCase() + "%"));
             }
 
             return cb.and(predicates.toArray(Predicate[]::new));

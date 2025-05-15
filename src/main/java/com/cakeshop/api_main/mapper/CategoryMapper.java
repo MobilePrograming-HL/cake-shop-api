@@ -28,6 +28,7 @@ public interface CategoryMapper {
     void updateFromUpdateCategoryRequest(@MappingTarget Category category, UpdateCategoryRequest request);
 
     @Mapping(source = "id", target = "id")
+    @Mapping(source = "code", target = "code")
     @Mapping(source = "name", target = "name")
     @Mapping(source = "description", target = "description")
     @Mapping(source = "image", target = "image")
@@ -37,4 +38,14 @@ public interface CategoryMapper {
 
     @IterableMapping(elementTargetType = CategoryResponse.class, qualifiedByName = "fromEntityToCategoryResponse")
     List<CategoryResponse> fromEntitiesToCategoryResponseList(List<Category> categories);
+
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "code", target = "code")
+    @Mapping(source = "name", target = "name")
+    @BeanMapping(ignoreByDefault = true)
+    @Named("fromEntityToCategoryResponseAutoComplete")
+    CategoryResponse fromEntityToCategoryResponseAutoComplete(Category category);
+
+    @IterableMapping(elementTargetType = CategoryResponse.class, qualifiedByName = "fromEntityToCategoryResponseAutoComplete")
+    List<CategoryResponse> fromEntitiesToCategoryResponseListAutoComplete(List<Category> categories);
 }

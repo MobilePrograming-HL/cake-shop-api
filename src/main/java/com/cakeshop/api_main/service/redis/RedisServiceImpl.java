@@ -55,4 +55,9 @@ public class RedisServiceImpl implements IRedisService {
         redisTemplate.delete(key);
     }
 
+    @Override
+    public boolean hasKey(String key) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+    }
+
 }

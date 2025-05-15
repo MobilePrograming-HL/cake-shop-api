@@ -12,6 +12,7 @@ import com.cakeshop.api_main.mapper.CategoryMapper;
 import com.cakeshop.api_main.model.Category;
 import com.cakeshop.api_main.model.criteria.CategoryCriteria;
 import com.cakeshop.api_main.repository.internal.ICategoryRepository;
+import com.cakeshop.api_main.repository.internal.IProductRepository;
 import com.cakeshop.api_main.utils.BaseResponseUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.Valid;
@@ -23,7 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.*;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CategoryController {
     ICategoryRepository categoryRepository;
+    IProductRepository productRepository;
+
     CategoryMapper categoryMapper;
 
     @GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -53,21 +55,18 @@ public class CategoryController {
     }
 
     @GetMapping(value = "/get/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse<CategoryResponse> get(@PathVariable Long id) {
+    public BaseResponse<CategoryResponse> get(@PathVariable String id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.RESOURCE_EXISTED));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND_ERROR));
 
         return BaseResponseUtils.success(categoryMapper.fromEntityToCategoryResponse(category), "Get category successfully");
     }
 
     @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('CAT_CRE')")
-    public BaseResponse<Void> create(
-            @Valid @RequestBody CreateCategoryRequest request,
-            BindingResult bindingResult
-    ) {
+    public BaseResponse<Void> create(@Valid @RequestBody CreateCategoryRequest request) {
         if (categoryRepository.existsByName(request.getName())) {
-            throw new BadRequestException(ErrorCode.RESOURCE_EXISTED);
+            throw new BadRequestException(ErrorCode.CATEGORY_NAME_EXISTED_ERROR);
         }
         // Create CATEGORY
         Category category = categoryMapper.fromCreateCategoryRequest(request);
@@ -78,16 +77,13 @@ public class CategoryController {
 
     @PutMapping(value = "/update", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('CAT_UDP')")
-    public BaseResponse<Void> updateUser(
-            @Valid @RequestBody UpdateCategoryRequest request,
-            BindingResult bindingResult
-    ) {
+    public BaseResponse<Void> updateUser(@Valid @RequestBody UpdateCategoryRequest request) {
         Category category = categoryRepository.findById(request.getId())
-                .orElseThrow(() -> new NotFoundException(ErrorCode.RESOURCE_NOT_EXISTED));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND_ERROR));
         // Update name
         if (!category.getName().equals(request.getName())) {
             if (categoryRepository.existsByName(request.getName())) {
-                throw new BadRequestException(ErrorCode.RESOURCE_EXISTED);
+                throw new BadRequestException(ErrorCode.CATEGORY_NAME_EXISTED_ERROR);
             }
         }
         // Update CATEGORY
@@ -99,13 +95,13 @@ public class CategoryController {
 
     @DeleteMapping(value = "/delete/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('CAT_DEL')")
-    public BaseResponse<Void> delete(@PathVariable Long id) {
+    public BaseResponse<Void> delete(@PathVariable String id) {
         categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.RESOURCE_NOT_EXISTED));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND_ERROR));
 
-//        if (productRepository.existsByCategoryId(id)) {
-//            throw new ResourceBadRequestException(ErrorCode.CATEGORY_ERROR_CANT_DELETE_RELATIONSHIP_WITH_PRODUCT);
-//        }
+        if (productRepository.existsByCategoryId(id)) {
+            throw new BadRequestException(ErrorCode.CATEGORY_CANT_DELETE_RELATIONSHIP_WITH_PRODUCT_ERROR);
+        }
 
         // Delete CATEGORY
         categoryRepository.deleteById(id);

@@ -8,9 +8,9 @@ server:
 
 spring:
   datasource:
-    url: ${DBMS_URL:jdbc:mysql://localhost:4000/db_cake_shop}
-    username: ${DBMS_USERNAME:root}
-    password: ${DBMS_PASSWORD:root}
+    url: ${DATASOURCE_URL:jdbc:mysql://localhost:4000/db_cake_shop}
+    username: ${DATASOURCE_USERNAME:root}
+    password: ${DATASOURCE_PASSWORD:root}
     driverClassName: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 5
@@ -27,6 +27,8 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
+        order_inserts: true
+        order_updates: true
   liquibase:
     change-log: classpath:liquibase/db.changelog-master.xml
     enabled: true
@@ -39,11 +41,22 @@ spring:
     password: ${MAIL_PASSWORD}
     protocol: ${MAIL_PROTOCOL}
     properties:
-      mail.smtp.auth: true
-      mail.smtp.ssl.enable: false
-      mail.smtp.starttls.enable: true
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+        debug: true
   config:
     import: optional:file:.env[.properties]
+  data:
+    redis:
+      host: ${REDISHOST}
+      port: ${REDISPORT:6379}
+      password: ${REDISPASSWORD}
+      url: ${REDIS_URL}
+    elasticsearch:
+      uris: http://localhost:9200
 
 open:
   api:
@@ -55,11 +68,35 @@ open:
 
 jwt:
   signerKey: ${SECURITY_SIGNER_KEY}
-  valid-duration: 600
-  refreshable-duration: 3600
+  valid-duration: 7    # 7 ngày cho access token
+  refreshable-duration: 30  # 30 ngày cho access token
 
 outbound:
   identity:
     client-id: ${CLIENT_ID}
     client-secret: ${CLIENT_SECRET}
     redirect-uri: ${SECURITY_REDIRECT_URI}
+
+payment:
+  vnPay:
+    url: ${PAY_URL}
+    tmnCode: ${TMN_CODE}
+    secretKey: ${SECRET_KEY}
+    returnUrl: ${RETURN_URL}
+    version: ${VERSION}
+    command: ${COMMAND}
+    orderType: ${ORDER_TYPE}
+  momo:
+    partner-code: MOMO
+    redirect-url: http://localhost:8080/api/v1/order/ipn-handler
+    ipn-url: http://localhost:8080/api/v1/order/ipn-handler
+    access-key: F8BBA842ECF85
+    secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
+    request-type: payWithMethod
+    end-point: https://test-payment.momo.vn/v2/gateway/api
+  fiserv:
+    apiKey: MCFggV7VcRfl36AWcDt36cDNnchYzyxg
+    apiSecret: ofrgYGAVG9EOBR6fAxvMumuNFhmdv6IvQAqORPSzPot
+    storeId: 72305408
+    url: https://prod.emea.api.fiservapps.com/sandbox
+    callback-url: https://e5e7-2402-800-6f2c-8012-9db5-c82-8669-354a.ngrok-free.app
