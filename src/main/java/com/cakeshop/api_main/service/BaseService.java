@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class BaseService {
     OrderCodeService orderCodeService;
 
-    public String getOrderCode(Long keyNumber){
-        return orderCodeService.orderCode(keyNumber);
+    public String getOrderCode(){
+        return orderCodeService.orderCode();
     }
 }

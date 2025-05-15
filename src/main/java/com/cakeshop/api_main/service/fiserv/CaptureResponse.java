@@ -10,7 +10,6 @@ public class CaptureResponse {
     private String apiTraceId;
     private String ipgTransactionId;
     private String orderId;
-    private String merchantTransactionId;
     private String transactionStatus;
     private String transactionType;
 }

@@ -99,8 +99,4 @@ payment:
     apiSecret: ofrgYGAVG9EOBR6fAxvMumuNFhmdv6IvQAqORPSzPot
     storeId: 72305408
     url: https://prod.emea.api.fiservapps.com/sandbox
-    callback-url: https://e609-2402-800-6f2c-8012-c06a-f6d2-61c5-44f9.ngrok-free.app
-    webhookEndpoint: https://e609-2402-800-6f2c-8012-c06a-f6d2-61c5-44f9.ngrok-free.app/api/v1/order/fiserv-webhook?restaurentId=821
-
-order:
-  keyNumer: 08022004
+    callback-url: https://e5e7-2402-800-6f2c-8012-9db5-c82-8669-354a.ngrok-free.app

@@ -1,5 +1,6 @@
 package com.cakeshop.api_main.service.fiserv;
 
+import com.cakeshop.api_main.constant.FiservConstant;
 import com.cakeshop.api_main.service.id.SnowFlakeIdService;
 import com.cakeshop.api_main.utils.HMACUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -36,8 +37,8 @@ public class FiservService {
     public FiservCreateCheckoutResponse create(String orderId, String currency, Double amount) {
         CreateCheckoutRequest request = new CreateCheckoutRequest();
         request.setStoreId(storeId);
-        request.setTransactionOrigin("ECOM");
-        request.setTransactionType("PRE-AUTH");
+        request.setTransactionOrigin(FiservConstant.TRANSACTION_ORIGIN_ECOM);
+        request.setTransactionType(FiservConstant.TRANSACTION_TYPE_PRE_AUTH);
         Money money = new Money();
         money.setTotal(convertVndToUsd(amount));
         money.setCurrency(currency);
@@ -60,7 +61,7 @@ public class FiservService {
         String clientRequestId = UUID.randomUUID().toString();
         String timestamp = String.valueOf(System.currentTimeMillis());
         String messageToSign = apiKey + clientRequestId + timestamp + requestBody;
-        String signature = HMACUtils.encrypt(messageToSign, apiSecret, "HmacSHA256");
+        String signature = HMACUtils.encrypt(messageToSign, apiSecret, FiservConstant.ALGORITHM_HMAC_SHA_256);
 
         return fiservClient.createCheckout(apiKey, clientRequestId, timestamp, signature, requestBody);
     }
@@ -71,7 +72,7 @@ public class FiservService {
 
     public CaptureResponse captureByOrderId(String orderId, Double amount, String currency) {
         PostAuthRequest request = new PostAuthRequest();
-        request.setRequestType("PostAuthTransaction");
+        request.setRequestType(FiservConstant.REQUEST_TYPE_POST_AUTH_TRANSACTION);
         OrderFiserv orderFiserv = new OrderFiserv();
         orderFiserv.setOrderId(orderId);
         request.setOrder(orderFiserv);
@@ -84,7 +85,7 @@ public class FiservService {
         String timestamp = String.valueOf(System.currentTimeMillis());
         String requestId = UUID.randomUUID().toString();
         String toSign = apiKey + requestId + timestamp + bodyJson;
-        String signature = HMACUtils.encrypt(toSign, apiSecret, "HmacSHA256");
+        String signature = HMACUtils.encrypt(toSign, apiSecret, FiservConstant.ALGORITHM_HMAC_SHA_256);
 
         return fiservClient.captureByOrderId(apiKey, requestId, timestamp, signature, orderId, request);
     }
