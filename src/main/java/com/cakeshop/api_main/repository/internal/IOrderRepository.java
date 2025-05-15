@@ -12,4 +12,6 @@ public interface IOrderRepository extends JpaRepository<Order, String>, JpaSpeci
     Optional<Order> findByIdAndCustomerAccountUsername(String orderId, String username);
 
     Optional<Order> findByCode(String code);
+
+    boolean existsByAddressId(String addressId);
 }

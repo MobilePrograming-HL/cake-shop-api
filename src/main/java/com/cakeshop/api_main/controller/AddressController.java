@@ -16,6 +16,7 @@ import com.cakeshop.api_main.model.criteria.AddressCriteria;
 import com.cakeshop.api_main.repository.internal.IAddressRepository;
 import com.cakeshop.api_main.repository.internal.ICustomerRepository;
 import com.cakeshop.api_main.repository.internal.INationRepository;
+import com.cakeshop.api_main.repository.internal.IOrderRepository;
 import com.cakeshop.api_main.utils.BaseResponseUtils;
 import com.cakeshop.api_main.utils.SecurityUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -42,6 +43,7 @@ public class AddressController {
     IAddressRepository addressRepository;
     ICustomerRepository customerRepository;
     INationRepository nationRepository;
+    IOrderRepository orderRepository;
 
     AddressMapper addressMapper;
 
@@ -164,6 +166,9 @@ public class AddressController {
         String username = SecurityUtil.getCurrentUsername();
         customerRepository.findByAccountUsername(username)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CUSTOMER_NOT_FOUND_ERROR));
+        if (orderRepository.existsByAddressId(id)) {
+            throw new BadRequestException(ErrorCode.ADDRESS_CANT_DELETE_RELATIONSHIP_WITH_ORDER_ERROR);
+        }
         addressRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
         // Delete ADDRESS
