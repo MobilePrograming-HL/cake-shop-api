@@ -1,6 +1,7 @@
 package com.cakeshop.api_main.controller;
 
 import com.cakeshop.api_main.constant.BaseConstant;
+import com.cakeshop.api_main.constant.FiservConstant;
 import com.cakeshop.api_main.dto.request.order.BuyNowOrderRequest;
 import com.cakeshop.api_main.dto.request.order.CreateOrderRequest;
 import com.cakeshop.api_main.dto.request.order.UpdateOrderStatusRequest;
@@ -69,9 +70,6 @@ public class OrderController {
     @Autowired
     BaseService baseService;
 
-    @Value(value = "${order.keyNumer}")
-    Long keyNumber;
-
     @GetMapping(value = "/get/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<OrderResponse> get(@PathVariable String id) {
         String username = SecurityUtil.getCurrentUsername();
@@ -121,7 +119,7 @@ public class OrderController {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ADDRESS_NOT_FOUND_ERROR));
         List<OrderItemDetails> orderItemDetailsList = new ArrayList<>();
         orderItemDetailsList.add(new OrderItemDetails(product, tag, request.getQuantity()));
-        String code = baseService.getOrderCode(keyNumber);
+        String code = baseService.getOrderCode();
         Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote(), code);
         int status;
         if (Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO) ||
@@ -172,7 +170,7 @@ public class OrderController {
                     .map(
                             item -> new OrderItemDetails(item.getProduct(), item.getTag(), item.getQuantity())
                     ).toList();
-            String code = baseService.getOrderCode(keyNumber);
+            String code = baseService.getOrderCode();
             Order order = new Order(customer, request.getShippingFee(), request.getPaymentMethod(), address, request.getNote(), code);
             int status;
             if (Objects.equals(request.getPaymentMethod(), BaseConstant.PAYMENT_METHOD_MOMO)
@@ -237,6 +235,7 @@ public class OrderController {
         return BaseResponseUtils.success(null, "Cancel order successfully");
     }
 
+    // momo callback
     @GetMapping("/ipn-handler")
     public BaseResponse<Void> inpHandler(@RequestParam Map<String, String> params) {
         int resultCode = Integer.parseInt(params.get("resultCode"));
@@ -260,11 +259,12 @@ public class OrderController {
         return BaseResponseUtils.success(null, "Giao dịch thất bại");
     }
 
+    // fiserv callback
     @PostMapping("/fiserv-webhook")
     public BaseResponse<Void> ipnHandler(@RequestBody FiservWebhookPayload payload, @RequestParam Long restaurantId) {
         log.info("ipn handler called");
-        if ("PRE-AUTH".equals(payload.getTransactionType())
-                && "APPROVED".equals(payload.getTransactionStatus())) {
+        if (FiservConstant.TRANSACTION_TYPE_PRE_AUTH.equals(payload.getTransactionType())
+                && FiservConstant.TRANSACTION_STATUS_APPROVED.equals(payload.getTransactionStatus())) {
             log.info("restaurantId = ", restaurantId);
             String orderId = payload.getOrderId();
             Double amount = payload.getApprovedAmount().getTotal();
@@ -275,7 +275,8 @@ public class OrderController {
                     .orElseThrow(() -> new NotFoundException(ErrorCode.ORDER_NOT_FOUND_ERROR));
             // update status
             CaptureResponse captureResponse = fiservService.captureByOrderId(orderId, amount, currency);
-            if (captureResponse != null && captureResponse.getTransactionType().equals("POSTAUTH") && captureResponse.getTransactionStatus().equals("APPROVED")) {
+            if (captureResponse != null && captureResponse.getTransactionType().equals(FiservConstant.TRANSACTION_TYPE_POST_AUTH)
+                    && captureResponse.getTransactionStatus().equals(FiservConstant.TRANSACTION_STATUS_APPROVED)) {
                 OrderStatus orderStatus = new OrderStatus();
                 orderStatus.setStatus(BaseConstant.ORDER_STATUS_PROCESSING);
                 orderStatus.setDate(new Date());

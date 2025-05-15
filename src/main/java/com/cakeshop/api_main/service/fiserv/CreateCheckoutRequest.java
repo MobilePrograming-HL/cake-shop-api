@@ -7,7 +7,6 @@ import lombok.Setter;
 @Setter
 public class CreateCheckoutRequest {
     private String storeId;
-//    private String merchantTransactionId; // orderId
     private String transactionOrigin;
     private String transactionType;
     private Money transactionAmount;

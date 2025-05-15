@@ -34,7 +34,7 @@ public class OrderCodeService {
         return otp.toString();
     }
 
-    public synchronized String orderCode(Long keyNumber) {
+    public synchronized String orderCode() {
         long next = counter.getAndIncrement();
 
         String base36 = Long.toString(next, 36).toUpperCase();
