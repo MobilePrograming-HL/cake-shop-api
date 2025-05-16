@@ -1,4 +1,4 @@
-# User-service
+# CakeShop API Service
 This is a service reserved for authentication and authorization based on JWT.
 
 ## Tech stack
@@ -44,11 +44,13 @@ This is a service reserved for authentication and authorization based on JWT.
 - From Jar
 ```java -jar [app jar file] [-Dspring.profiles.active=test]```
 
--  From docker images
+- From docker images
 ```docker run -it -p 8080:8080 -e "SPRING_PROFILES_ACTIVE=[profile-name]" [image-tag-version]```
 
     Ex: ```docker run -it -p 8080:8080 -e "SPRING_PROFILES_ACTIVE=dev" user-service-be-v1.0```
-
+- Use ngrok for callback payment
+```fiserv.callback-url=<ngrok link>```
+    Ex: ```fiserv.callback-url=https://e5e7-2402-800-6f2c-8012-9db5-c82-8669-354a.ngrok-free.app```
 
 ## Contact point
 If you have any problem when rebuild application feel free to contact persons in below:
